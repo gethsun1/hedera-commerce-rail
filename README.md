@@ -1,78 +1,49 @@
-# Scaffold-HBAR — Blank starter
+# Hedera Commerce Rail
 
-Minimal Hedera dApp baseline: Next.js, Hardhat or Foundry, and Hedera networks (testnet, mainnet, local fork). No opinionated product UI — you add the app on top.
+A Scaffold HBAR template for programmable commerce settlement on Hedera. The planned reference flow is a buyer funding an escrow, approving service milestones, and releasing or refunding funds with an auditable history.
 
-CLI key: `blank` (branch `templates/blank-template`).
+> **Status:** Milestone 1 (project foundation). This repository contains the upstream Scaffold HBAR blank starter with its sample contracts; Commerce Rail payment, escrow, HTS, HCS, and Mirror Node features are roadmap work and are not implemented yet. No Hedera deployment is configured or performed.
 
-The full product guide — CLI flags, npm run vs npm, deploy, and verify — lives in [Scaffold HBAR on Hedera docs](https://docs.hedera.com/solutions/tools/scaffold-hbar/index). This README is what is specific to **this** template.
+## Create a project
 
-## What's in this template
-
-- Next.js App Router with wallet connect, **Debug Contracts**, and a local block explorer
-- Sample HTS contracts (`HederaToken`, `HtsTokenCreator`) so Debug Contracts has something to call
-- Hardhat and Foundry packages (the CLI can drop one)
-- Hashio RPC + Mirror Node config for Hedera testnet and mainnet
-- Package manager: npm (recommended) or npm — see `template.json`
-
-Create a project from this template:
+The current CLI package is `create-scaffold-hbar`. From the repository root, run:
 
 ```bash
-npm run create scaffold-hbar@latest -- --template blank
+npx create-scaffold-hbar@latest --template gethsun1/hedera-commerce-rail
 ```
 
-`npx create-scaffold-hbar@latest --template blank` is equivalent. The CLI also asks for frontend, Solidity framework, network, and package manager.
+The CLI retrieves community templates from GitHub. Once this repository is published and reachable, choose Next.js, Hardhat, and Testnet in its prompts. The root `template.json` limits this template to the verified Next.js + Hardhat + npm combination.
 
-## Work from this repository
+## Local development
 
-This branch uses npm run workspaces, so clone-and-run needs npm. Apps created with the CLI can use npm (default) or npm; see the [docs](https://docs.hedera.com/solutions/tools/scaffold-hbar/index).
-
-### Prerequisites
-
-- [Node.js](https://nodejs.org/) ≥ 20.18.3
-- [Git](https://git-scm.com/) with `user.name` and `user.email` configured
-- [npm](https://www.npmjs.com/) (default; required if you clone this repo) or npm run if you scaffolded with the CLI. For npm, install via Corepack:
-  ```bash
-  corepack enable && corepack prepare npm@stable --activate
-  ```
-- **If using Foundry:** [Foundry](https://book.getfoundry.sh/getting-started/installation) (`forge`, `cast`, `anvil`)
-
-### Quick start
+Requirements: Node.js >=20.18.3, npm, and Git. The selected upstream baseline is Next.js + Hardhat; use the npm workspace commands below.
 
 ```bash
-npm install
+npm install --legacy-peer-deps
+npm run dev
+```
 
-# Terminal 1: local Hedera-forked node
+`npm run dev` starts the Next.js application at `http://localhost:3000`. Other baseline commands:
+
+```bash
+npm run build
+npm run lint
+npm test
 npm run hardhat:chain
-
-# Terminal 2: deploy to that node (8545)
-npm run hardhat:deploy --network localhost
-
-# Terminal 3: Next.js app
-npm run next:start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) and use the **Debug Contracts** page.
+Hardhat's baseline tests include Hedera-specific HTS precompile examples and may require the local Hedera fork node. See `packages/hardhat/README.md` for the upstream contract workflow. Do not use production accounts or real funds for development.
 
-Frontend only (no local chain):
+## Configuration and secrets
 
-```bash
-npm install
-npm run next:dev
-```
+Copy `.env.example` to `.env` when a later milestone requires credentials. It contains safe placeholders only. The root variables document the intended configuration names; the current upstream Hardhat and wallet configuration is documented in each package's own `.env.example`. Never commit `.env`, account keys, mnemonics, or API credentials.
 
-`npm run hardhat:deploy` without `--network localhost` targets the in-process `hardhat` network, not the long-running fork. Local Hardhat and Foundry workflows are in [`packages/hardhat/README.md`](packages/hardhat/README.md) and [`packages/foundry/README.md`](packages/foundry/README.md). Deploy and verify on testnet/mainnet: [Hedera docs](https://docs.hedera.com/solutions/tools/scaffold-hbar/index#deploying-to-testnet).
+## Architecture and project status
 
-## Project layout
+- [Architecture](docs/architecture.md) — system boundaries, current foundation, and planned integration points.
+- [Milestones](docs/MILESTONES.md) — acceptance criteria and verification gates for the complete roadmap.
+- [Development log](docs/DEVELOPMENT_LOG.md) — reconnaissance findings and implementation record.
 
-- **packages/hardhat** — Hardhat config, contracts, `deploy/` scripts, tests
-- **packages/foundry** — Forge config, contracts, `script/` deploy scripts, tests
-- **packages/nextjs** — Next.js app, RainbowKit, wagmi, scaffold config
+## Upstream foundation
 
-Network and RPC URLs are in `packages/hardhat/hardhat.config.ts` and `packages/foundry/foundry.toml` respectively.
-
-## Links
-
-- [Scaffold HBAR docs](https://docs.hedera.com/solutions/tools/scaffold-hbar/index)
-- [create-scaffold-hbar](https://github.com/hedera-dev/create-scaffold-hbar) — CLI
-- [Hedera Portal faucet](https://portal.hedera.com/faucet)
-- [HashScan](https://hashscan.io/)
+This project was initialized with the official `create-scaffold-hbar` 0.4.1 CLI from the `hedera-dev/scaffold-hbar` `templates/blank-template` branch. It preserves the Scaffold HBAR workspace layout and Next.js/Hardhat conventions. See [Scaffold HBAR](https://github.com/hedera-dev/scaffold-hbar) and [create-scaffold-hbar](https://github.com/hedera-dev/create-scaffold-hbar) for upstream documentation.

@@ -1,6 +1,6 @@
 {
-  "name": "sh",
-  "version": "0.0.1",
+  "name": "hedera-commerce-rail",
+  "version": "0.1.0",
   "private": true,
   "workspaces": {
     "packages": [
@@ -9,6 +9,8 @@
     ]
   },
   "scripts": {
+    "build": "npm run hardhat:compile && npm run next:build",
+    "dev": "npm run next:dev",
     "format": "npm run next:format -- && npm run hardhat:format --",
     "hardhat:account": "npm run account -w @sh/hardhat --",
     "hardhat:account:generate": "npm run account:generate -w @sh/hardhat --",
@@ -33,7 +35,8 @@
     "next:format": "npm run format -w @sh/nextjs --",
     "next:lint": "npm run lint -w @sh/nextjs --",
     "next:serve": "npm run serve -w @sh/nextjs --",
-    "next:start": "npm run start -w @sh/nextjs --"
+    "next:start": "npm run start -w @sh/nextjs --",
+    "test": "npm run hardhat:test"
   },
   "packageManager": "npm@10.0.0",
   "devDependencies": {

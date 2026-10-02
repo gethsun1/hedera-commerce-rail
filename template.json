@@ -1,0 +1,36 @@
+{
+  "name": "hedera-commerce-rail",
+  "description": "Scaffold HBAR foundation for programmable commerce settlement on Hedera.",
+  "create-scaffold-hbar": {
+    "capabilities": {
+      "frontend": ["nextjs-app"],
+      "solidityFramework": ["hardhat"],
+      "packageManager": ["npm"]
+    },
+    "defaults": {
+      "frontend": "nextjs-app",
+      "solidityFramework": "hardhat",
+      "packageManager": "npm"
+    },
+    "outro": {
+      "sections": [
+        {
+          "title": "Next steps",
+          "steps": [
+            {
+              "label": "Install dependencies",
+              "command": "npm install --legacy-peer-deps"
+            },
+            {
+              "label": "Start the reference app",
+              "command": "npm run dev"
+            },
+            {
+              "text": "Commerce escrow integrations are roadmap work. Review README.md and docs/MILESTONES.md for current implementation status."
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

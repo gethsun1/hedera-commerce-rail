@@ -50,6 +50,16 @@ Statuses are evidence-based. A milestone is complete only after its stated check
 - **Definition of done:** Contract interface and security assumptions reviewed; all validation recorded in the development log; no automatic deployment.
 - **Potential risks:** Arbiter trust, native HBAR denomination, and contract upgrade expectations.
 
+## Milestone 3.5 — Testnet Readiness & Deployment — INCOMPLETE (GitHub push blocked)
+
+- **Objective:** Validate the configured ECDSA Testnet signer, deploy only the M3 `PaymentEscrow`, verify its on-network code, and publish a documented GitHub checkpoint.
+- **Credential handling:** The repository-root `.env` is ignored and remains local. The ECDSA signer is used for EVM/Hardhat operations; ED25519 credentials are not used for deployment.
+- **Deployment:** Hedera Testnet, chain ID 296; `PaymentEscrow` at `0x85a038f7FB8E01EBD6F0E5B02791E57Bfb6aa260` (Hedera contract `0.0.10842321`), transaction `0xb8dedb6bd8cf23ae03496594e15bb4f887a8b9e20d5b86f081f4ef06f15f1c13`, 2026-10-03 13:09:42 UTC.
+- **Verification:** Mirror Node contract and transaction results returned HTTP 200 / `SUCCESS`; Testnet JSON-RPC reported non-empty runtime bytecode and chain ID 296. No payment-flow transaction was sent.
+- **Definition of done:** Signer/account, M3 checks, secret protection, docs, and focused local commit are verified. GitHub push is still required to complete this checkpoint. M4 HTS integration has NOT started.
+- **GitHub checkpoint:** SSH push was rejected (`Permission denied (publickey)`). The authenticated GitHub CLI account has repository write access, but GitHub rejected publishing `.github/workflows/lint.yaml` because its OAuth token lacks the `workflow` scope. No credential was changed and no history was rewritten.
+- **Potential risks:** Testnet deployment is not an audit; arbiter trust and M3 limitations remain as documented.
+
 ## Milestone 4 — HTS Integration — NOT STARTED
 
 - **Objective:** Add supported fungible HTS payment assets to settlement flows.

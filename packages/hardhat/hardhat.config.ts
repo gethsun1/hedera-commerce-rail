@@ -1,5 +1,10 @@
 import * as dotenv from "dotenv";
-dotenv.config();
+import * as path from "path";
+
+// Workspace scripts run from this package directory; load the repository-level
+// environment first, then fill any missing values from a package-local file.
+dotenv.config({ path: path.resolve(__dirname, "../../.env") });
+dotenv.config({ path: path.resolve(__dirname, ".env") });
 
 import { HardhatUserConfig, task } from "hardhat/config";
 import "@nomicfoundation/hardhat-ethers";

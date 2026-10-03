@@ -2,7 +2,7 @@
 
 A Scaffold HBAR template for programmable commerce settlement on Hedera. The planned reference flow is a buyer funding an escrow, approving service milestones, and releasing or refunding funds with an auditable history.
 
-> **Status:** HBAR `PaymentEscrow` and fungible HTS `TokenPaymentEscrow` are deployed/exercised on Hedera Testnet. M4.1 validated contract self-association, payer approval, release, and post-deadline refund. The local Hedera fork cannot associate newly deployed local contracts because they are not registered Hedera entities. HCS audit integration, Mirror Node business queries, and the reference UI remain roadmap work.
+> **Status:** HBAR `PaymentEscrow`, fungible HTS `TokenPaymentEscrow`, and the optional HCS audit publisher are implemented and validated on Hedera Testnet. HCS and contract events are an asynchronous audit path; contract state remains authoritative. Mirror Node product queries and the reference UI remain roadmap work.
 
 ## Create a project
 
@@ -47,6 +47,14 @@ For this checkout, a Testnet ECDSA account is configured in the ignored local `.
 `TokenPaymentEscrow` is a separate settlement contract, preserving `PaymentEscrow` as HBAR-only. It accepts fungible HTS token EVM addresses through their ERC-20-compatible facade. Amounts are integer smallest units. Before use, the escrow contract, payer, and payee need token associations; call `associateToken(tokenAddress)` so the escrow contract opts in through HIP-719, associate payer/payee accounts with the token, and have the payer approve the escrow for the exact amount. Then create and fund a payment. Token IDs remain Hedera's canonical identifier; their EVM token address is the Solidity-facing value recorded by the contract and events. Allowances do not create token associations.
 
 For local unit tests, run `npm run hardhat:chain`; the lifecycle suite uses a token double and a diagnostic confirms the local fork limitation. For actual HTS behavior, the M4.1 Testnet run deployed `TokenPaymentEscrow` at [`0xa1069144BAc92E69634F8af332C92d053d9e72bb`](https://hashscan.io/testnet/contract/0.0.10843288) and used token `0.0.10843331` (`0x0000000000000000000000000000000000a574C3`). It verified escrow and recipient self-association, allowance, two releases, and one payer refund after deadline. The escrow ended with zero token balance/liability. The local fork limitation is specific: its HTS emulator requires an account-to-Hedera-entity mapping for HIP-719, which newly deployed local EVM contracts do not have. Do not use the local fork diagnostic as proof of Testnet failure.
+
+### HCS commerce audit stream
+
+`PaymentEscrow` and `TokenPaymentEscrow` Solidity logs remain the authoritative payment record. A server-side adapter normalizes an observed contract log to schema version 1 and submits it to a configured Hedera Consensus Service topic. HCS unavailability never changes or rolls back settlement. The canonical schema, event identity, provisioning steps, and retry limitations are described in [docs/architecture.md](docs/architecture.md).
+
+Provision a dedicated Testnet topic once with `npm run hcs:topic:create -w @sh/hardhat`, then set `HCS_TOPIC_ID` in the ignored `.env`. The scaffold creates a public topic by default; optionally set `HCS_TOPIC_SUBMIT_KEY` to the public key for a private topic, with the matching signer in `HEDERA_PRIVATE_KEY`. Runtime publishing is opt-in through `publishConfiguredEvent` in `packages/hardhat/lib/hcs/publisher.ts`. Do not include private data or credentials in messages. HCS messages are public and immutable.
+
+To exercise publishing on Testnet, run `npm run hcs:smoke -w @sh/hardhat`. It creates, funds with one tinybar, and releases a minimal HBAR payment, then publishes that actual contract event. It also publishes the previously verified M4 HTS funding event without another token transfer. Each HCS write incurs the network's standard transaction fee. Retry after an ambiguous timeout can create a duplicate; consumers should deduplicate using the deterministic `eventId`. The M5 validation and exact transaction/consensus records are in [docs/DEVELOPMENT_LOG.md](docs/DEVELOPMENT_LOG.md).
 
 ## Configuration and secrets
 

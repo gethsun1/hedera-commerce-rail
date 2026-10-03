@@ -74,7 +74,7 @@ Statuses are evidence-based. A milestone is complete only after its stated check
 
 The implementation adds `TokenPaymentEscrow` and a tagged deployment script. Testnet: contract `0xa1069144BAc92E69634F8af332C92d053d9e72bb` (`0.0.10843288`), token `0.0.10843331` (`0x0000000000000000000000000000000000a574C3`). The escrow and payee contract self-associated, payer approved the escrow, payments 1 and 2 were released, and payment 5 was refunded after its deadline. Final payer/payee/escrow balances were 98/2/0 token units (6 decimals); escrow liability was zero. Mirror Node confirmed terminal states and logs. The local fork diagnostic fails because new local contracts lack remote Hedera entity mappings required by its HIP-719 emulator; this is separate from the successful Testnet validation. See the development log for evidence and transaction hashes.
 
-## Milestone 5 — HCS Audit Trail — NOT STARTED
+## Milestone 5 — HCS Audit Trail — COMPLETE
 
 - **Objective:** Define and optionally publish privacy-conscious commerce audit events.
 - **Dependencies:** Milestones 2–3; event/state schema stable.
@@ -83,8 +83,10 @@ The implementation adds `TokenPaymentEscrow` and a tagged deployment script. Tes
 - **Acceptance criteria:** Events are structured, versioned, correlated to on-chain state, and contain no secrets or unnecessary personal data.
 - **Automated tests:** Schema validation, serialization, error/retry tests, and mocked client tests.
 - **Manual verification:** Submit a sample to Testnet only with a designated test account/topic.
-- **Definition of done:** Consumers can validate and correlate audit messages; HCS is clearly optional and not canonical escrow state.
+- **Definition of done:** Consumers can validate and correlate audit messages; HCS is clearly optional and not canonical escrow state. Testnet verification is recorded in the development log. Delivery is at-least-once across process restarts; consumers deduplicate by event ID.
 - **Potential risks:** Duplicate messages, topic key permissions, fees, and immutable accidental disclosure.
+
+M5 adds `packages/hardhat/lib/hcs/{schema,publisher}.ts` and opt-in `hcs:topic:create` / `hcs:smoke` workflows. Topic `0.0.10844125` was provisioned on Testnet. Mirror Node confirmed ordered schema-v1 HBAR and HTS_FUNGIBLE messages at sequences 3 and 4, with consensus timestamps and source EVM transaction/log coordinates. A prior smoke retry also wrote duplicate messages at sequences 1 and 2 after an RPC reset; delivery is at-least-once and consumers must deduplicate by `eventId`. No payment settlement depends on HCS. Exact evidence is in the M5 development log.
 
 ## Milestone 6 — Mirror Node Integration — NOT STARTED
 

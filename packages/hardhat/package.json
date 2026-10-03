@@ -5,6 +5,8 @@
     "account": "hardhat run scripts/listAccount.ts",
     "account:generate": "hardhat run scripts/generateAccount.ts",
     "account:import": "hardhat run scripts/importAccount.ts",
+    "hcs:topic:create": "ts-node scripts/hcsTopic.ts",
+    "hcs:smoke": "hardhat run scripts/hcsSmoke.ts --network hederaTestnet",
     "account:reveal-pk": "hardhat run scripts/revealPK.ts",
     "chain": "HEDERA_FORKING=true hardhat node --network hardhat --no-deploy",
     "check-types": "tsc --noEmit --incremental",

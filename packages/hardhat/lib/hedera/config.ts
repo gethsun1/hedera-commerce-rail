@@ -54,7 +54,14 @@ export function readHederaEnvironment(env: NodeJS.ProcessEnv = process.env): Hed
 
   let privateKey: PrivateKey;
   try {
-    privateKey = PrivateKey.fromString(env.HEDERA_PRIVATE_KEY);
+    const encodedKey = env.HEDERA_PRIVATE_KEY.replace(/^0x/i, "");
+    // EVM account keys are raw secp256k1 hex; select their type explicitly so
+    // the SDK does not misinterpret the bytes as an ED25519 key.
+    privateKey = /^[0-9a-fA-F]{64}$/.test(encodedKey)
+      ? PrivateKey.fromStringECDSA(encodedKey)
+      : /^(302e|3030)/i.test(encodedKey)
+        ? PrivateKey.fromStringDer(encodedKey)
+        : PrivateKey.fromStringED25519(encodedKey);
   } catch {
     throw new Error(
       "HEDERA_PRIVATE_KEY is malformed. Supply a valid Hedera private key; its value is never displayed.",

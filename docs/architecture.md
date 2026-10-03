@@ -33,7 +33,8 @@ flowchart LR
   TOKEN --> HTS[HTS token facade / allowance / association]
   HBAR --> EVMEvents[Contract events]
   TOKEN --> EVMEvents
-  SDK --> HCS[Optional HCS audit stream]
+  EVMEvents --> Adapter[Server-side HCS event adapter]
+  Adapter --> HCS[Optional HCS audit topic]
   UI --> Mirror[Mirror Node read utilities]
   EVMEvents --> Mirror
   HCS --> Mirror
@@ -69,10 +70,55 @@ The Testnet ECDSA key is configured only in the ignored repository-root `.env`; 
 
 - **HTS:** `TokenPaymentEscrow` handles only fungible HTS tokens via their ERC-20-compatible token facade. It records the token EVM address (the Solidity-facing representation of Hedera's token ID), payer, payee, arbiter, amount in smallest units, deadline and state. It checks exact token balance deltas on funding and settlement, consumes an explicit payer allowance, tracks escrow liabilities per token, and applies reentrancy protection. Tokens are not interchangeable with HBAR or arbitrary ERC-20 contracts by assumption; integrators remain responsible for token policy/trust.
 - **Association:** Each account/contract must have a token relationship before it receives an HTS token. The escrow exposes `associateToken` and calls the token's HIP-719 association facade as itself. The payer and payee associate from their own accounts before funding/release; payer approval is a separate ERC-20-compatible allowance step. Association and allowance are independent requirements. Testnet validated both contract self-association paths. The local fork cannot emulate this for newly deployed contracts: its `0x167` HIP-719 route requires a Hedera entity mapping, which local EVM deployments do not have.
-- **HCS:** Planned optional audit messages with a versioned event schema. Secrets and unnecessary personal data must never enter messages.
+- **HCS:** Implemented as an optional, server-side publisher. The contract logs remain authoritative; the adapter never runs inside Solidity settlement and no payment call waits on HCS.
 - **Mirror Node:** Planned read-only transaction, event, and HCS history support. No API integration exists yet.
 
-The upstream HTS token-creation example remains a token provisioning utility, separate from both escrow contracts. Payment events carry stable IDs and state transition data for future Mirror Node indexing and optional HCS correlation. M5 and later remain unstarted.
+The upstream HTS token-creation example remains a token provisioning utility, separate from both escrow contracts. Payment events carry stable IDs and state transition data for future Mirror Node indexing and HCS correlation. M6 remains unstarted.
+
+## Milestone 5 — HCS audit/event integration
+
+`packages/hardhat/lib/hcs/schema.ts` defines schema version 1 for `payment.created`, `payment.funded`, `payment.released`, and `payment.refunded`. The envelope uses decimal strings for payment IDs, amounts, and source EVM block numbers to avoid JSON number precision loss. `assetType` is `HBAR` with `assetId: null`, or `HTS_FUNGIBLE` with the Solidity-facing HTS token EVM address. It includes payer/payee, originating escrow, Hedera network, source transaction hash, source block, log index, occurrence time, and scalar-only metadata. It rejects unknown event kinds, malformed required fields, invalid asset forms, schema versions, and messages over 1,024 UTF-8 bytes.
+
+Canonical JSON shape:
+
+```json
+{
+  "schemaVersion": 1,
+  "eventId": "0x<sha256>",
+  "eventType": "payment.funded",
+  "paymentId": "12",
+  "assetType": "HTS_FUNGIBLE",
+  "assetId": "0x<40-hex-token-evm-address>",
+  "payer": "0x<40-hex-address>",
+  "payee": "0x<40-hex-address>",
+  "amount": "1000000",
+  "contractAddress": "0x<40-hex-address>",
+  "network": "hedera-testnet",
+  "sourceTxHash": "0x<64-hex-transaction-hash>",
+  "sourceBlockNumber": "41308701",
+  "sourceLogIndex": 2,
+  "occurredAt": "2026-10-03T14:58:49.000Z",
+  "metadata": {}
+}
+```
+
+For HBAR, `assetType` is `HBAR` and `assetId` is JSON `null`.
+
+The `eventId` is SHA-256 over `network:lowercase(sourceTxHash):lowercase(contractAddress):sourceLogIndex`. Those source coordinates come from the actual EVM receipt and are sufficient to reconstruct identity. Payment ID is payload context, not part of identity; EVM log index distinguishes multiple logs in one transaction. HCS does not enforce uniqueness. The publisher suppresses concurrent duplicate attempts and repeats within one process, but there is no durable outbox or cross-process deduplication store in this scaffold. Submission is therefore at-least-once when callers retry an ambiguous timeout; consumers should deduplicate by `eventId`. The HCS message response returns its HCS transaction ID and topic sequence number; consensus timestamp is available from the Mirror Node, which is a future M6 read integration.
+
+`normalizeEscrowLog` maps the existing `Payment*` and `TokenPayment*` events to the stable event names. The caller supplies the event's confirmed EVM receipt coordinates and the payment terms resolved from the contract at that source block; this enriches lifecycle events such as `PaymentFunded` that do not repeat the payee. It rejects unknown event names and mismatched payment IDs. It does not maintain a second payment state machine.
+
+### Topic provisioning and runtime configuration
+
+The developer provisions one topic per application/environment and supplies its topic ID at runtime (`HCS_TOPIC_ID`); the scaffold does not create topics at app startup. `npm run hcs:topic:create -w @sh/hardhat` is a one-time, Testnet-only command. It requires the existing `HEDERA_NETWORK=testnet`, `HEDERA_ACCOUNT_ID`, and `HEDERA_PRIVATE_KEY`, creates a topic with the M5 schema memo (marked public by default, private when a submit key is supplied), and prints the resulting topic ID and create transaction ID. The command refuses to create a topic when `HCS_TOPIC_ID` is already configured, so the existing topic is reused. `npm run hcs:smoke -w @sh/hardhat` is an explicit Testnet-only validation action. The `@hiero-ledger/sdk` package already used by the project supplies `TopicCreateTransaction`, `TopicMessageSubmitTransaction`, topic IDs, and receipts.
+
+The provisioned M5 topic has no admin key and no submit key. Hedera defines an absent submit key as open submission to all accounts, and an absent admin key as no administrative update/delete authority (the topic cannot be deleted; expiration can be extended). The topic memo and message payload are public. For a private topic, set the optional `HCS_TOPIC_SUBMIT_KEY` public key when provisioning; the runtime `HEDERA_PRIVATE_KEY` must match it. The topic ID, network, operator credentials, and opt-in `HCS_ALLOW_MAINNET=true` gate are environment configuration. Mainnet publishing is disabled by default, while topic creation is restricted to Testnet.
+
+Each message submission is an HCS transaction paid by the configured operator and incurs standard network fees; topic custom fees are not configured by this scaffold. HCS preserves per-topic message sequencing and the Mirror Node exposes messages by topic, sequence, and consensus timestamp. There is no private data or credential field in the canonical schema. Metadata is optional and must not carry secrets, personal data, or sensitive application content; a public topic is immutable after submission.
+
+The implementation follows Hedera's current [topic creation guidance](https://docs.hedera.com/native/consensus/create-topic), [message submission guidance](https://docs.hedera.com/native/consensus/submit-message), and [Mirror Node topic API reference](https://docs.hedera.com/reference/rest-api/topics). The official SDK examples use `TopicCreateTransaction` / `TopicMessageSubmitTransaction`, with the created topic ID and submitted sequence number returned in transaction receipts. HCS charges a standard network fee per submitted transaction; custom topic fees can also apply, but this scaffold does not configure them.
+
+The publisher fails explicitly on invalid config, invalid topic IDs, invalid payloads, SDK precheck/receipt failures, and network errors. It has no separate retry queue: callers may retry after an error, but an error after network acceptance is ambiguous and can result in duplicate HCS records. This failure does not reverse contract state. Applications needing durable eventual publication need an external persistent outbox and consumer deduplication; no database, Redis, or queue was added to this scaffold. See the development log for the Testnet validation, including the observed duplicate after an RPC reset.
 
 ## Frontend and developer tooling
 

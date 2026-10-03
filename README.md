@@ -2,7 +2,7 @@
 
 A Scaffold HBAR template for programmable commerce settlement on Hedera. The planned reference flow is a buyer funding an escrow, approving service milestones, and releasing or refunding funds with an auditable history.
 
-> **Status:** HBAR `PaymentEscrow`, fungible HTS `TokenPaymentEscrow`, and the optional HCS audit publisher are implemented and validated on Hedera Testnet. HCS and contract events are an asynchronous audit path; contract state remains authoritative. Mirror Node product queries and the reference UI remain roadmap work.
+> **Status:** HBAR `PaymentEscrow`, fungible HTS `TokenPaymentEscrow`, the optional HCS audit publisher, and server-side Mirror Node query/correlation utilities are implemented and validated on Hedera Testnet. Contract state remains authoritative; HCS is the audit stream, and Mirror Node is the query/index/verification layer. A reference UI remains roadmap work.
 
 ## Create a project
 
@@ -55,6 +55,12 @@ For local unit tests, run `npm run hardhat:chain`; the lifecycle suite uses a to
 Provision a dedicated Testnet topic once with `npm run hcs:topic:create -w @sh/hardhat`, then set `HCS_TOPIC_ID` in the ignored `.env`. The scaffold creates a public topic by default; optionally set `HCS_TOPIC_SUBMIT_KEY` to the public key for a private topic, with the matching signer in `HEDERA_PRIVATE_KEY`. Runtime publishing is opt-in through `publishConfiguredEvent` in `packages/hardhat/lib/hcs/publisher.ts`. Do not include private data or credentials in messages. HCS messages are public and immutable.
 
 To exercise publishing on Testnet, run `npm run hcs:smoke -w @sh/hardhat`. It creates, funds with one tinybar, and releases a minimal HBAR payment, then publishes that actual contract event. It also publishes the previously verified M4 HTS funding event without another token transfer. Each HCS write incurs the network's standard transaction fee. Retry after an ambiguous timeout can create a duplicate; consumers should deduplicate using the deterministic `eventId`. The M5 validation and exact transaction/consensus records are in [docs/DEVELOPMENT_LOG.md](docs/DEVELOPMENT_LOG.md).
+
+### Mirror Node reads
+
+The Hardhat workspace exposes a server-side, read-only adapter in `packages/hardhat/lib/mirror-node/`. It queries contract metadata, EVM contract results/logs, Hedera transaction IDs, account/current balance information, fungible-token details, and topic messages. HBAR and HTS source events correlate by transaction hash + contract address + log index; HCS messages use the existing M5 `eventId`. Collections expose a page method and follow Mirror Node `links.next` only within a caller-provided limit (maximum 10,000 items). A current not-found result describes the indexer's current response and does not determine settlement state.
+
+Set `HEDERA_NETWORK=testnet` or `mainnet`. `MIRROR_NODE_BASE_URL` is optional and defaults to the official network endpoint; overrides must be HTTPS origins and are trusted server configuration. `HCS_TOPIC_ID` configures the default topic query. The adapter uses standard `fetch`, sends no credentials, performs no automatic retries, preserves source JSON, and maps 404, 400, 429 (`Retry-After` preserved), upstream, and configuration failures to typed errors. Mainnet rate limits can change; respect 429 responses and avoid unbounded scans. See [architecture](docs/architecture.md) and the M6 record in [development log](docs/DEVELOPMENT_LOG.md).
 
 ## Configuration and secrets
 

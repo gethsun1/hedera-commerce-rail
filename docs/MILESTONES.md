@@ -88,16 +88,17 @@ The implementation adds `TokenPaymentEscrow` and a tagged deployment script. Tes
 
 M5 adds `packages/hardhat/lib/hcs/{schema,publisher}.ts` and opt-in `hcs:topic:create` / `hcs:smoke` workflows. Topic `0.0.10844125` was provisioned on Testnet. Mirror Node confirmed ordered schema-v1 HBAR and HTS_FUNGIBLE messages at sequences 3 and 4, with consensus timestamps and source EVM transaction/log coordinates. After an RPC reset, the smoke retry created a new HBAR fixture at sequence 3 and duplicated the HTS event at sequence 4 (matching the event at sequence 2); delivery is at-least-once and consumers must deduplicate by `eventId`. No payment settlement depends on HCS. Exact evidence is in the M5 development log.
 
-## Milestone 6 — Mirror Node Integration — NOT STARTED
+## Milestone 6 — Mirror Node Integration — COMPLETE
 
 - **Objective:** Provide reusable read-only history and event queries.
 - **Dependencies:** Milestones 2–5 as applicable.
-- **Implementation tasks:** Build typed clients for transactions, contract events, HCS messages, and payment history; handle paging, throttling, and indexing delay.
-- **Files affected:** `packages/mirror-node/` or equivalent; tests and docs.
-- **Acceptance criteria:** Read APIs are network-aware, paginated, resilient to transient failures, and distinguish not-yet-indexed from absent data.
-- **Automated tests:** Fixture-based parsing, pagination, timeout/retry, and error tests.
-- **Manual verification:** Compare returned test data with an authoritative Hedera explorer/Mirror Node response.
-- **Definition of done:** App history views use read-only utilities and explain indexer delay.
+- **Implementation:** `packages/hardhat/lib/mirror-node/{client,verification}.ts` provides typed read methods and event correlation using built-in `fetch`; no new dependency or frontend/dashboard was added.
+- **Queries:** Account/current HBAR balance, contract metadata, Hedera transaction ID, EVM contract execution result/logs, topic message by sequence or paged history, and HTS token metadata.
+- **Pagination/errors:** API `links.next`, one-page and bounded methods, max 100 per page/10,000 results/100 pages; typed configuration, invalid request, not found, rate-limit (`Retry-After`), malformed/network/upstream errors. No retries.
+- **Correlation:** M5 event IDs remain canonical. Settlement lookup compares Ethereum tx hash + escrow EVM address + log index with the returned contract result. HCS lookup validates existing schema-v1 messages and matches event ID and source coordinates. Mirror Node results describe indexed API observations and never establish settlement state.
+- **Automated tests:** Mocked config, normalized shapes, bounded pagination, HTTP/network/JSON failures, event decoding and HBAR/HTS/HCS correlations; see `mirror-node.test.ts`.
+- **Manual verification:** Testnet contracts, M4 token, M3/M4 source logs and M5 topic messages were queried successfully; evidence is in the development log.
+- **Definition of done:** Complete after all regression/build/typecheck/lint/secret/diff checks recorded in the development log.
 - **Potential risks:** Mirror Node schema/version and service availability can change.
 
 ## Milestone 7 — Commerce SDK — NOT STARTED

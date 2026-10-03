@@ -86,7 +86,7 @@ The implementation adds `TokenPaymentEscrow` and a tagged deployment script. Tes
 - **Definition of done:** Consumers can validate and correlate audit messages; HCS is clearly optional and not canonical escrow state. Testnet verification is recorded in the development log. Delivery is at-least-once across process restarts; consumers deduplicate by event ID.
 - **Potential risks:** Duplicate messages, topic key permissions, fees, and immutable accidental disclosure.
 
-M5 adds `packages/hardhat/lib/hcs/{schema,publisher}.ts` and opt-in `hcs:topic:create` / `hcs:smoke` workflows. Topic `0.0.10844125` was provisioned on Testnet. Mirror Node confirmed ordered schema-v1 HBAR and HTS_FUNGIBLE messages at sequences 3 and 4, with consensus timestamps and source EVM transaction/log coordinates. A prior smoke retry also wrote duplicate messages at sequences 1 and 2 after an RPC reset; delivery is at-least-once and consumers must deduplicate by `eventId`. No payment settlement depends on HCS. Exact evidence is in the M5 development log.
+M5 adds `packages/hardhat/lib/hcs/{schema,publisher}.ts` and opt-in `hcs:topic:create` / `hcs:smoke` workflows. Topic `0.0.10844125` was provisioned on Testnet. Mirror Node confirmed ordered schema-v1 HBAR and HTS_FUNGIBLE messages at sequences 3 and 4, with consensus timestamps and source EVM transaction/log coordinates. After an RPC reset, the smoke retry created a new HBAR fixture at sequence 3 and duplicated the HTS event at sequence 4 (matching the event at sequence 2); delivery is at-least-once and consumers must deduplicate by `eventId`. No payment settlement depends on HCS. Exact evidence is in the M5 development log.
 
 ## Milestone 6 — Mirror Node Integration — NOT STARTED
 

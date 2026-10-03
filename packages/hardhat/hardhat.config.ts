@@ -17,13 +17,26 @@ import "hardhat-deploy";
 import "hardhat-deploy-ethers";
 
 import generateTsAbis from "./scripts/generateTsAbis";
+import { HEDERA_NETWORKS } from "./lib/hedera/config";
 
-// Hedera JSON-RPC URL (testnet default). Set HEDERA_RPC_URL in .env for mainnet.
-const hederaRpcUrl = process.env.HEDERA_RPC_URL || "https://testnet.hashio.io/api";
+// Optional override for the Hedera EVM fork; named Hedera networks use their network table URLs.
+const hederaRpcUrl = process.env.HEDERA_RPC_URL || HEDERA_NETWORKS.testnet.rpcUrl;
 
-// Deployer key: run `npm run account:generate` or `npm run account:import`, or set __RUNTIME_DEPLOYER_PRIVATE_KEY at runtime.
-const deployerPrivateKey =
-  process.env.__RUNTIME_DEPLOYER_PRIVATE_KEY ?? "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
+// Only provide a signer when explicitly configured. In particular, never use Hardhat's
+// public development key to sign transactions sent to Hedera.
+const deployerPrivateKey = process.env.__RUNTIME_DEPLOYER_PRIVATE_KEY ?? process.env.HEDERA_PRIVATE_KEY;
+const requestedNetwork = process.argv.includes("--network")
+  ? process.argv[process.argv.indexOf("--network") + 1]
+  : undefined;
+if (
+  (requestedNetwork === "hederaTestnet" || requestedNetwork === "hederaMainnet") &&
+  !deployerPrivateKey &&
+  !process.env.DEPLOYER_PRIVATE_KEY_ENCRYPTED
+) {
+  throw new Error(
+    `HEDERA_PRIVATE_KEY is required for ${requestedNetwork}. Configure a dedicated account key before running this command.`,
+  );
+}
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -55,14 +68,14 @@ const config: HardhatUserConfig = {
       },
     },
     hederaTestnet: {
-      url: "https://testnet.hashio.io/api",
-      accounts: [deployerPrivateKey],
-      chainId: 296,
+      url: HEDERA_NETWORKS.testnet.rpcUrl,
+      accounts: deployerPrivateKey ? [deployerPrivateKey] : [],
+      chainId: HEDERA_NETWORKS.testnet.chainId,
     },
     hederaMainnet: {
-      url: "https://mainnet.hashio.io/api",
-      accounts: [deployerPrivateKey],
-      chainId: 295,
+      url: HEDERA_NETWORKS.mainnet.rpcUrl,
+      accounts: deployerPrivateKey ? [deployerPrivateKey] : [],
+      chainId: HEDERA_NETWORKS.mainnet.chainId,
     },
   },
   // Contract verification: use `npm run verify:contract` (scripts/verifySourcify.ts), which talks

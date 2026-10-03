@@ -26,7 +26,7 @@ Statuses are evidence-based. A milestone is complete only after its stated check
 - **Definition of done:** All applicable checks and limitations are recorded; only this milestone is complete.
 - **Potential risks:** Upstream sample HTS test needs a Hedera-compatible fork; baseline configuration may require hardening before use with funded accounts.
 
-## Milestone 2 — Hedera Connection Layer — NOT STARTED
+## Milestone 2 — Hedera Connection Layer — COMPLETE
 
 - **Objective:** Provide typed, validated network/client configuration for supported Hedera environments.
 - **Dependencies:** Milestone 1.
@@ -35,20 +35,20 @@ Statuses are evidence-based. A milestone is complete only after its stated check
 - **Acceptance criteria:** Configuration fails clearly when required values are absent; no credentials are logged; local/testnet selection is explicit.
 - **Automated tests:** Config validation unit tests; typecheck/lint; offline client construction tests.
 - **Manual verification:** Review a placeholder-only setup and verify network selection without submitting transactions.
-- **Definition of done:** A new developer can configure a test account without source edits and understand signing behavior.
+- **Definition of done:** A new developer can configure a test account without source edits and understand signing behavior. The SDK module and environment validation are in `packages/hardhat/lib/hedera/config.ts`; local client construction is credential-free, while public networks require explicit credentials. Hardhat no longer falls back to the public local test key for Hedera networks.
 - **Potential risks:** Hedera SDK/provider interfaces and RPC capabilities may differ by service and network.
 
-## Milestone 3 — Commerce Smart Contracts — NOT STARTED
+## Milestone 3 — Commerce Smart Contracts — COMPLETE
 
-- **Objective:** Implement and test generic HBAR escrow and milestone settlement primitives.
-- **Dependencies:** Milestone 2 and written decisions for disputes/deadlines.
-- **Implementation tasks:** Specify state transitions; implement creation, funding, release, refund, deadlines, access control, events, and failure cases; apply checks-effects-interactions and reentrancy protection.
+- **Objective:** Implement and test a focused native HBAR escrow primitive. Multi-milestone settlement is deferred.
+- **Dependencies:** Milestone 2; payer refund after deadline and arbiter resolution policy are specified in the contract/docs.
+- **Implementation tasks:** Specify state transitions; implement agreement creation, funding, release, refund, deadlines, access control, events, and failure cases; apply checks-effects-interactions and reentrancy protection.
 - **Files affected:** `packages/hardhat/contracts/`, deploy scripts, tests, and contract design docs.
 - **Acceptance criteria:** State transitions are permissioned and terminal states cannot be reopened; funds cannot be released/refunded twice; edge cases are documented.
 - **Automated tests:** Unit/property-style tests for valid and invalid lifecycle transitions, reentrancy attempts, deadlines, and accounting.
-- **Manual verification:** Review state diagram and event/API consistency; compile deployed bytecode locally only.
-- **Definition of done:** Contract interface and security assumptions reviewed; no deployment without a later explicit milestone.
-- **Potential risks:** Ambiguous dispute rights, native HBAR receipt behavior, and contract upgrade expectations.
+- **Manual verification:** Review state diagram and event/API consistency; compile deployed bytecode locally. Testnet deployment remains explicit and optional.
+- **Definition of done:** Contract interface and security assumptions reviewed; all validation recorded in the development log; no automatic deployment.
+- **Potential risks:** Arbiter trust, native HBAR denomination, and contract upgrade expectations.
 
 ## Milestone 4 — HTS Integration — NOT STARTED
 

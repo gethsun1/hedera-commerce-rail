@@ -2,7 +2,7 @@
 
 A Scaffold HBAR template for programmable commerce settlement on Hedera. The planned reference flow is a buyer funding an escrow, approving service milestones, and releasing or refunding funds with an auditable history.
 
-> **Status:** Milestone 1 (project foundation). This repository contains the upstream Scaffold HBAR blank starter with its sample contracts; Commerce Rail payment, escrow, HTS, HCS, and Mirror Node features are roadmap work and are not implemented yet. No Hedera deployment is configured or performed.
+> **Status:** Milestone 3 (native HBAR escrow) is implemented. The repository includes the Scaffold HBAR starter, a validated Hedera SDK connection module, and a tested PaymentEscrow contract. HTS payments, HCS audit integration, Mirror Node business queries, and the reference UI remain roadmap work. No Hedera deployment has been performed.
 
 ## Create a project
 
@@ -34,9 +34,17 @@ npm run hardhat:chain
 
 Hardhat's baseline tests include Hedera-specific HTS precompile examples and may require the local Hedera fork node. See `packages/hardhat/README.md` for the upstream contract workflow. Do not use production accounts or real funds for development.
 
+### Native HBAR escrow
+
+`PaymentEscrow` lets a payer create an agreement, fund it with its exact native HBAR amount, and have the payer or arbiter release funds to the payee. After the agreed deadline, the payer can refund; the arbiter can resolve by release or refund at any time. Agreements use the states `Created → Funded → Released | Refunded`. Amounts are specified in Hedera EVM tinybars. On a Hedera Ethers transaction, encode a tinybar amount as `tinybars * 10_000_000_000` weibars (so one HBAR is `10^18` in the transaction value); see [Hedera's denomination and Hardhat guidance](https://docs.hedera.com/hedera/sdks-and-apis/sdks/smart-contracts/ethereum-transaction).
+
+Run only the escrow tests with `npm run hardhat:test -- --grep PaymentEscrow`. To deploy explicitly to Testnet after configuring a dedicated `HEDERA_PRIVATE_KEY`, run `npm run hardhat:deploy -- --network hederaTestnet --tags PaymentEscrow`. This command sends a deployment transaction and spends gas; it is never part of build or tests. See [docs/architecture.md](docs/architecture.md) for lifecycle and security assumptions.
+
 ## Configuration and secrets
 
-Copy `.env.example` to `.env` when a later milestone requires credentials. It contains safe placeholders only. The root variables document the intended configuration names; the current upstream Hardhat and wallet configuration is documented in each package's own `.env.example`. Never commit `.env`, account keys, mnemonics, or API credentials.
+Copy `.env.example` to `.env` to configure the connection layer. For local Hiero SDK access set `HEDERA_NETWORK=local`; this targets an independently running Hedera Local Node and needs no account credentials. The Scaffold HBAR `npm run hardhat:chain` fork is an EVM JSON-RPC node, not a Hiero SDK Local Node. For Testnet or Mainnet set `HEDERA_NETWORK=testnet` or `mainnet`, then provide a dedicated `HEDERA_ACCOUNT_ID` and `HEDERA_PRIVATE_KEY`. Hardhat deployment also accepts the upstream encrypted account workflow; it will never fall back to Hardhat's public local key on a Hedera network. `HEDERA_RPC_URL` overrides the Hardhat fork provider URL. Never commit `.env`, account keys, mnemonics, or API credentials.
+
+Run `npm test` for the credential-free unit and local-fork suite. To opt into the read-only account lookup, set the three Testnet variables above and run `HEDERA_TESTNET_INTEGRATION=true npm test`; this performs an account information query and sends no transaction.
 
 ## Architecture and project status
 

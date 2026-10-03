@@ -15,6 +15,12 @@ packages/
 docs/           Architecture, roadmap, and development journal
 ```
 
+## Hedera connection layer (Milestone 2)
+
+`packages/hardhat/lib/hedera/config.ts` centralizes the local, Testnet, and Mainnet network metadata and provides environment parsing plus a Hiero SDK `Client` factory. The browser continues to use Scaffold HBAR's Wagmi/Viem wallet and chain configuration; the SDK client is server-side and does not replace that wallet layer. RPC endpoint defaults align with the Scaffold HBAR configuration. Local SDK access targets a running local-node service; the browser/Hardhat local EVM fork remains a separate JSON-RPC interface.
+
+Set `HEDERA_NETWORK=local` for SDK construction without credentials when a Hedera Local Node service is running. This is distinct from Scaffold HBAR's `npm run hardhat:chain`, which runs a forked EVM JSON-RPC node and is used by the contract tests. Testnet and Mainnet require both `HEDERA_ACCOUNT_ID` and `HEDERA_PRIVATE_KEY`; malformed/missing values fail with actionable messages and secret values are not included. Hardhat live networks have no default signing account: set `HEDERA_PRIVATE_KEY` or use the existing encrypted account deploy command. `HEDERA_RPC_URL` optionally overrides the Hardhat EVM fork provider URL. No Mirror Node business client is added in this milestone. The optional read-only connectivity test is enabled with `HEDERA_TESTNET_INTEGRATION=true npm test`; the default suite skips it.
+
 The Scaffold HBAR CLI supports the framework and package-manager options declared in `template.json` upstream. Community templates are downloaded from GitHub repositories/refs, so the intended scaffold command depends on this repository being published and publicly accessible.
 
 ## Planned system boundaries
@@ -33,14 +39,33 @@ flowchart LR
 
 The diagram describes planned boundaries, not implemented Milestone 1 behavior. Core contract/client APIs should be reusable, while screens and example workflows remain in the reference application. HBAR settlement and HTS token handling must be explicit asset paths, with token association/allowance requirements surfaced to users where applicable. Contract events are the canonical on-chain state transitions; HCS is an optional application audit stream rather than the source of escrow state. Mirror Node utilities are read-only projections and must handle indexing delay.
 
-## Hedera services and contract design
+## Milestone 3 — native HBAR escrow
 
-- **Hedera EVM / Solidity:** Planned escrow state machine for creation, funding, milestone release, completion, deadline handling, and refunds. Access rules and dispute resolution need explicit product decisions before contract implementation.
-- **HTS:** Planned token-payment support using current Hedera-supported EVM/SDK interfaces. The exact transfer path and token-association behavior will be validated against official docs in the relevant milestone.
+`packages/hardhat/contracts/PaymentEscrow.sol` is the first Commerce Rail contract. It keeps creation separate from funding and handles only native HBAR. Each payment stores payer, payee, optional arbiter, amount, asset (`address(0)` for HBAR), creation time, deadline, and state. Amount is the EVM-visible tinybar unit. Hedera Ethers transaction values use weibars: one tinybar is represented by `10^10` weibars, or `10^18` for one HBAR.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Created: createPayment
+    Created --> Funded: payer funds exact amount
+    Funded --> Released: payer or arbiter releases
+    Funded --> Refunded: payer after deadline / arbiter resolution
+    Released --> [*]
+    Refunded --> [*]
+```
+
+The payer creates and funds an agreement. Only the payer or configured arbiter can release or refund it. The payer's refund path opens strictly after the deadline (`block.timestamp > deadline`); the arbiter can resolve immediately. A zero arbiter disables arbitration. Release transfers to the payee, refund transfers to the payer. The contract rejects direct unaccounted deposits and tracks `totalEscrowed`; forced HBAR sent outside the EVM call path is surplus and is not counted as payment funds.
+
+OpenZeppelin `ReentrancyGuard` protects value settlement. Each operation validates, updates state and liabilities, then makes a checked low-level value transfer. A failed recipient transfer reverts the whole settlement. `PaymentCreated`, `PaymentFunded`, `PaymentReleased`, and `PaymentRefunded` use indexed payment IDs and party addresses, include the HBAR asset marker and amount, and can be consumed by later indexers. They are EVM logs and do not depend on HCS.
+
+The deployment script is tagged `PaymentEscrow`; opt-in Testnet deployment is `npm run hardhat:deploy -- --network hederaTestnet --tags PaymentEscrow`. The existing Hardhat config requires an explicitly configured signing key and uses chain ID 296/Testnet RPC settings. No live deployment has been made. Default tests run against the configured local Hedera EVM fork and need no Testnet credentials.
+
+### Future asset and audit extensions
+
+- **HTS:** Keep `PaymentEscrow` HBAR-only. A later adapter/contract should transfer HTS fungible tokens through Hedera-supported token-service interfaces while retaining shared agreement/state/event semantics. Its transfer path, associations, allowance model, and token balance accounting must be tested on the local Hedera fork before use.
 - **HCS:** Planned optional audit messages with a versioned event schema. Secrets and unnecessary personal data must never enter messages.
 - **Mirror Node:** Planned read-only transaction, event, and HCS history support. No API integration exists yet.
 
-The upstream starter currently includes sample ERC-20 and HTS token creation contracts. They are not Commerce Rail contracts and should be replaced or retained only if later product design gives them a clear role. Milestone 1 adds no payment contracts.
+The upstream starter's ERC-20 and HTS token creation examples remain separate from PaymentEscrow and are not used for this HBAR lifecycle. Payment events carry stable IDs and state transition data for future Mirror Node indexing and optional HCS correlation.
 
 ## Frontend and developer tooling
 
@@ -48,7 +73,7 @@ The frontend is the upstream Scaffold HBAR Next.js App Router package with its w
 
 ## Testing and deployment
 
-The target test layers are isolated contract unit tests, local Hedera-fork tests where HTS semantics require them, client tests, and a later Testnet smoke check with an explicitly configured test account. Milestone 1 preserves upstream workflows and does not deploy. Future deployments must be opt-in and network-specific; local development and automated tests must not require a funded production account.
+The Hardhat unit tests exercise the escrow lifecycle on the configured local Hedera EVM fork, including balance/accounting checks, event data, deadline boundaries, invalid transitions, and a callback reentrancy attempt. Testnet smoke checks remain opt-in with a disposable, explicitly configured account. Deployments must be opt-in and network-specific; local development and automated tests do not require a funded network account.
 
 ## Environment and security assumptions
 

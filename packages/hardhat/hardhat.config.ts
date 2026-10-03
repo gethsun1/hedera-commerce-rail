@@ -72,6 +72,10 @@ const config: HardhatUserConfig = {
         workerPort: 10001,
       },
     },
+    localhost: {
+      url: "http://127.0.0.1:8545",
+      chainId: 296,
+    },
     hederaTestnet: {
       url: HEDERA_NETWORKS.testnet.rpcUrl,
       accounts: deployerPrivateKey ? [deployerPrivateKey] : [],

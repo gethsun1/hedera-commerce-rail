@@ -52,4 +52,7 @@ interface IHederaTokenService {
         int64 amount,
         bytes[] memory metadata
     ) external returns (int64 responseCode, int64 newTotalSupply, int64[] memory serialNumbers);
+
+    /// Queries the type of a token. SUCCESS is 22; FUNGIBLE_COMMON is 0.
+    function getTokenType(address token) external view returns (int64 responseCode, int32 tokenType);
 }

@@ -6,581 +6,6 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-hbar/contract";
 
 const deployedContracts = {
   296: {
-    HederaToken: {
-      address: "0xa510c1b5ebcefb83267f4f2bae2765611606c85a",
-      abi: [
-        {
-          type: "constructor",
-          inputs: [
-            {
-              name: "initialOwner",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
-          name: "allowance",
-          inputs: [
-            {
-              name: "owner",
-              type: "address",
-              internalType: "address",
-            },
-            {
-              name: "spender",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "approve",
-          inputs: [
-            {
-              name: "spender",
-              type: "address",
-              internalType: "address",
-            },
-            {
-              name: "value",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          outputs: [
-            {
-              name: "",
-              type: "bool",
-              internalType: "bool",
-            },
-          ],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
-          name: "balanceOf",
-          inputs: [
-            {
-              name: "account",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "decimals",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint8",
-              internalType: "uint8",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "mint",
-          inputs: [
-            {
-              name: "to",
-              type: "address",
-              internalType: "address",
-            },
-            {
-              name: "amount",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          outputs: [],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
-          name: "name",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "string",
-              internalType: "string",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "owner",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "renounceOwnership",
-          inputs: [],
-          outputs: [],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
-          name: "symbol",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "string",
-              internalType: "string",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "totalSupply",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "transfer",
-          inputs: [
-            {
-              name: "to",
-              type: "address",
-              internalType: "address",
-            },
-            {
-              name: "value",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          outputs: [
-            {
-              name: "",
-              type: "bool",
-              internalType: "bool",
-            },
-          ],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
-          name: "transferFrom",
-          inputs: [
-            {
-              name: "from",
-              type: "address",
-              internalType: "address",
-            },
-            {
-              name: "to",
-              type: "address",
-              internalType: "address",
-            },
-            {
-              name: "value",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          outputs: [
-            {
-              name: "",
-              type: "bool",
-              internalType: "bool",
-            },
-          ],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
-          name: "transferOwnership",
-          inputs: [
-            {
-              name: "newOwner",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          outputs: [],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "event",
-          name: "Approval",
-          inputs: [
-            {
-              name: "owner",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-            {
-              name: "spender",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-            {
-              name: "value",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
-          name: "OwnershipTransferred",
-          inputs: [
-            {
-              name: "previousOwner",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-            {
-              name: "newOwner",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
-          name: "Transfer",
-          inputs: [
-            {
-              name: "from",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-            {
-              name: "to",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-            {
-              name: "value",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "error",
-          name: "ERC20InsufficientAllowance",
-          inputs: [
-            {
-              name: "spender",
-              type: "address",
-              internalType: "address",
-            },
-            {
-              name: "allowance",
-              type: "uint256",
-              internalType: "uint256",
-            },
-            {
-              name: "needed",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-        },
-        {
-          type: "error",
-          name: "ERC20InsufficientBalance",
-          inputs: [
-            {
-              name: "sender",
-              type: "address",
-              internalType: "address",
-            },
-            {
-              name: "balance",
-              type: "uint256",
-              internalType: "uint256",
-            },
-            {
-              name: "needed",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-        },
-        {
-          type: "error",
-          name: "ERC20InvalidApprover",
-          inputs: [
-            {
-              name: "approver",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-        },
-        {
-          type: "error",
-          name: "ERC20InvalidReceiver",
-          inputs: [
-            {
-              name: "receiver",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-        },
-        {
-          type: "error",
-          name: "ERC20InvalidSender",
-          inputs: [
-            {
-              name: "sender",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-        },
-        {
-          type: "error",
-          name: "ERC20InvalidSpender",
-          inputs: [
-            {
-              name: "spender",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-        },
-        {
-          type: "error",
-          name: "OwnableInvalidOwner",
-          inputs: [
-            {
-              name: "owner",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-        },
-        {
-          type: "error",
-          name: "OwnableUnauthorizedAccount",
-          inputs: [
-            {
-              name: "account",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-        },
-      ],
-      inheritedFunctions: {},
-      deployedOnBlock: 33578755,
-    },
-    HtsTokenCreator: {
-      address: "0x03fcda15d3955b20557028db9fabe6f5847f00ab",
-      abi: [
-        {
-          type: "function",
-          name: "HTS",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "SUCCESS",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "int64",
-              internalType: "int64",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "createToken",
-          inputs: [
-            {
-              name: "name",
-              type: "string",
-              internalType: "string",
-            },
-            {
-              name: "symbol",
-              type: "string",
-              internalType: "string",
-            },
-            {
-              name: "initialSupply",
-              type: "uint256",
-              internalType: "uint256",
-            },
-            {
-              name: "decimals",
-              type: "uint8",
-              internalType: "uint8",
-            },
-          ],
-          outputs: [
-            {
-              name: "tokenAddress",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          stateMutability: "payable",
-        },
-        {
-          type: "function",
-          name: "mintToken",
-          inputs: [
-            {
-              name: "token",
-              type: "address",
-              internalType: "address",
-            },
-            {
-              name: "amount",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          outputs: [
-            {
-              name: "newTotalSupply",
-              type: "int64",
-              internalType: "int64",
-            },
-          ],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "event",
-          name: "TokenCreated",
-          inputs: [
-            {
-              name: "tokenAddress",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-            {
-              name: "name",
-              type: "string",
-              indexed: false,
-              internalType: "string",
-            },
-            {
-              name: "symbol",
-              type: "string",
-              indexed: false,
-              internalType: "string",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
-          name: "TokenMinted",
-          inputs: [
-            {
-              name: "tokenAddress",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-            {
-              name: "newTotalSupply",
-              type: "int64",
-              indexed: false,
-              internalType: "int64",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "error",
-          name: "HtsCreateFailed",
-          inputs: [
-            {
-              name: "responseCode",
-              type: "int64",
-              internalType: "int64",
-            },
-          ],
-        },
-        {
-          type: "error",
-          name: "HtsMintFailed",
-          inputs: [
-            {
-              name: "responseCode",
-              type: "int64",
-              internalType: "int64",
-            },
-          ],
-        },
-      ],
-      inheritedFunctions: {},
-      deployedOnBlock: 33578759,
-    },
     PaymentEscrow: {
       address: "0x85a038f7FB8E01EBD6F0E5B02791E57Bfb6aa260",
       abi: [
@@ -1028,6 +453,514 @@ const deployedContracts = {
       ],
       inheritedFunctions: {},
       deployedOnBlock: 41305503,
+    },
+    TokenPaymentEscrow: {
+      address: "0xa1069144BAc92E69634F8af332C92d053d9e72bb",
+      abi: [
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "deadline",
+              type: "uint256",
+            },
+          ],
+          name: "DeadlineExpired",
+          type: "error",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "deadline",
+              type: "uint256",
+            },
+          ],
+          name: "DeadlineNotReached",
+          type: "error",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "expected",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "received",
+              type: "uint256",
+            },
+          ],
+          name: "IncorrectTokenReceived",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "InvalidAddress",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "InvalidAmount",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "InvalidDeadline",
+          type: "error",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "paymentId",
+              type: "uint256",
+            },
+          ],
+          name: "InvalidPayment",
+          type: "error",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "paymentId",
+              type: "uint256",
+            },
+            {
+              internalType: "enum TokenPaymentEscrow.State",
+              name: "currentState",
+              type: "uint8",
+            },
+          ],
+          name: "InvalidState",
+          type: "error",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "token",
+              type: "address",
+            },
+          ],
+          name: "InvalidToken",
+          type: "error",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "token",
+              type: "address",
+            },
+            {
+              internalType: "uint256",
+              name: "responseCode",
+              type: "uint256",
+            },
+          ],
+          name: "InvalidTokenResponse",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "ReentrancyGuardReentrantCall",
+          type: "error",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "token",
+              type: "address",
+            },
+            {
+              internalType: "address",
+              name: "recipient",
+              type: "address",
+            },
+            {
+              internalType: "uint256",
+              name: "amount",
+              type: "uint256",
+            },
+          ],
+          name: "TokenTransferFailed",
+          type: "error",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "caller",
+              type: "address",
+            },
+          ],
+          name: "Unauthorized",
+          type: "error",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "address",
+              name: "token",
+              type: "address",
+            },
+          ],
+          name: "EscrowTokenAssociated",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "uint256",
+              name: "paymentId",
+              type: "uint256",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "token",
+              type: "address",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "payer",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "address",
+              name: "payee",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "address",
+              name: "arbiter",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "amount",
+              type: "uint256",
+            },
+            {
+              indexed: false,
+              internalType: "uint64",
+              name: "createdAt",
+              type: "uint64",
+            },
+            {
+              indexed: false,
+              internalType: "uint64",
+              name: "deadline",
+              type: "uint64",
+            },
+          ],
+          name: "TokenPaymentCreated",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "uint256",
+              name: "paymentId",
+              type: "uint256",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "token",
+              type: "address",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "payer",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "amount",
+              type: "uint256",
+            },
+          ],
+          name: "TokenPaymentFunded",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "uint256",
+              name: "paymentId",
+              type: "uint256",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "token",
+              type: "address",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "payer",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "address",
+              name: "caller",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "amount",
+              type: "uint256",
+            },
+          ],
+          name: "TokenPaymentRefunded",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "uint256",
+              name: "paymentId",
+              type: "uint256",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "token",
+              type: "address",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "payee",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "address",
+              name: "caller",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "amount",
+              type: "uint256",
+            },
+          ],
+          name: "TokenPaymentReleased",
+          type: "event",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "token",
+              type: "address",
+            },
+          ],
+          name: "associateToken",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "token",
+              type: "address",
+            },
+            {
+              internalType: "address",
+              name: "payee",
+              type: "address",
+            },
+            {
+              internalType: "address",
+              name: "arbiter",
+              type: "address",
+            },
+            {
+              internalType: "uint256",
+              name: "amount",
+              type: "uint256",
+            },
+            {
+              internalType: "uint64",
+              name: "deadline",
+              type: "uint64",
+            },
+          ],
+          name: "createPayment",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "paymentId",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "paymentId",
+              type: "uint256",
+            },
+          ],
+          name: "fundPayment",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "paymentId",
+              type: "uint256",
+            },
+          ],
+          name: "getPayment",
+          outputs: [
+            {
+              components: [
+                {
+                  internalType: "address",
+                  name: "payer",
+                  type: "address",
+                },
+                {
+                  internalType: "address",
+                  name: "payee",
+                  type: "address",
+                },
+                {
+                  internalType: "address",
+                  name: "arbiter",
+                  type: "address",
+                },
+                {
+                  internalType: "address",
+                  name: "token",
+                  type: "address",
+                },
+                {
+                  internalType: "uint256",
+                  name: "amount",
+                  type: "uint256",
+                },
+                {
+                  internalType: "uint64",
+                  name: "createdAt",
+                  type: "uint64",
+                },
+                {
+                  internalType: "uint64",
+                  name: "deadline",
+                  type: "uint64",
+                },
+                {
+                  internalType: "enum TokenPaymentEscrow.State",
+                  name: "state",
+                  type: "uint8",
+                },
+              ],
+              internalType: "struct TokenPaymentEscrow.Payment",
+              name: "",
+              type: "tuple",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "nextPaymentId",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "paymentId",
+              type: "uint256",
+            },
+          ],
+          name: "refundPayment",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "paymentId",
+              type: "uint256",
+            },
+          ],
+          name: "releasePayment",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "token",
+              type: "address",
+            },
+          ],
+          name: "totalEscrowed",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "amount",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+      ],
+      inheritedFunctions: {},
+      deployedOnBlock: 41308091,
     },
   },
 } as const;

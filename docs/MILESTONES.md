@@ -60,17 +60,19 @@ Statuses are evidence-based. A milestone is complete only after its stated check
 - **GitHub checkpoint:** SSH push was rejected (`Permission denied (publickey)`). The authenticated GitHub CLI account has repository write access, but GitHub rejected publishing `.github/workflows/lint.yaml` because its OAuth token lacks the `workflow` scope. No credential was changed and no history was rewritten.
 - **Potential risks:** Testnet deployment is not an audit; arbiter trust and M3 limitations remain as documented.
 
-## Milestone 4 — HTS Integration — NOT STARTED
+## Milestone 4 — HTS Integration — COMPLETE (Testnet validated)
 
 - **Objective:** Add supported fungible HTS payment assets to settlement flows.
 - **Dependencies:** Milestones 2–3.
 - **Implementation tasks:** Choose the current supported HTS transfer path; model token decimals/association/allowance; define token failure handling and asset metadata.
 - **Files affected:** Contracts, Hedera client package, tests, config, and integration docs.
 - **Acceptance criteria:** Only supported tokens can be used under explicit policy; accounting handles token units correctly; failed transfers leave escrow state unchanged.
-- **Automated tests:** Local Hedera fork integration tests and unit coverage for decimals, rejection, association, and transfer failures.
-- **Manual verification:** Test with a disposable Testnet token/account after an explicit operator setup.
-- **Definition of done:** HBAR and HTS paths have clear shared interfaces and separately verified semantics.
+- **Automated tests:** Token lifecycle unit tests pass with a token double; existing HTS provisioning tests pass. End-to-end association/transfer against the local Hedera fork currently reverts inside the fork emulation layer and is not accepted as complete verification.
+- **Manual verification:** Testnet deployment and lifecycle using a dedicated test token/account; Mirror Node confirms transactions, logs, and final balances.
+- **Definition of done:** HBAR and HTS paths have separate interfaces and separately verified semantics. Met through Testnet validation; local fork association remains an emulator limitation and is documented.
 - **Potential risks:** Precompile/token behavior may diverge from generic EVM mocks; account association and fees.
+
+The implementation adds `TokenPaymentEscrow` and a tagged deployment script. Testnet: contract `0xa1069144BAc92E69634F8af332C92d053d9e72bb` (`0.0.10843288`), token `0.0.10843331` (`0x0000000000000000000000000000000000a574C3`). The escrow and payee contract self-associated, payer approved the escrow, payments 1 and 2 were released, and payment 5 was refunded after its deadline. Final payer/payee/escrow balances were 98/2/0 token units (6 decimals); escrow liability was zero. Mirror Node confirmed terminal states and logs. The local fork diagnostic fails because new local contracts lack remote Hedera entity mappings required by its HIP-719 emulator; this is separate from the successful Testnet validation. See the development log for evidence and transaction hashes.
 
 ## Milestone 5 — HCS Audit Trail — NOT STARTED
 

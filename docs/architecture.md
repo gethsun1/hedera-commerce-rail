@@ -28,16 +28,18 @@ The Scaffold HBAR CLI supports the framework and package-manager options declare
 ```mermaid
 flowchart LR
   UI[Reference Next.js app] --> SDK[Commerce client / SDK]
-  SDK --> SC[Escrow contracts on Hedera EVM]
-  SDK --> HTS[HTS token operations]
-  SC --> EVMEvents[Contract events]
+  SDK --> HBAR[PaymentEscrow: HBAR]
+  SDK --> TOKEN[TokenPaymentEscrow: fungible HTS]
+  TOKEN --> HTS[HTS token facade / allowance / association]
+  HBAR --> EVMEvents[Contract events]
+  TOKEN --> EVMEvents
   SDK --> HCS[Optional HCS audit stream]
   UI --> Mirror[Mirror Node read utilities]
   EVMEvents --> Mirror
   HCS --> Mirror
 ```
 
-The diagram describes planned boundaries, not implemented Milestone 1 behavior. Core contract/client APIs should be reusable, while screens and example workflows remain in the reference application. HBAR settlement and HTS token handling must be explicit asset paths, with token association/allowance requirements surfaced to users where applicable. Contract events are the canonical on-chain state transitions; HCS is an optional application audit stream rather than the source of escrow state. Mirror Node utilities are read-only projections and must handle indexing delay.
+The diagram shows system boundaries. HBAR and HTS use separate escrow contracts so native-value funding semantics remain stable. Contract events are the canonical on-chain state transitions; HCS is an optional application audit stream rather than the source of escrow state. Mirror Node utilities are read-only projections and must handle indexing delay.
 
 ## Milestone 3 — native HBAR escrow
 
@@ -65,11 +67,12 @@ The Testnet ECDSA key is configured only in the ignored repository-root `.env`; 
 
 ### Future asset and audit extensions
 
-- **HTS:** Keep `PaymentEscrow` HBAR-only. A later adapter/contract should transfer HTS fungible tokens through Hedera-supported token-service interfaces while retaining shared agreement/state/event semantics. Its transfer path, associations, allowance model, and token balance accounting must be tested on the local Hedera fork before use.
+- **HTS:** `TokenPaymentEscrow` handles only fungible HTS tokens via their ERC-20-compatible token facade. It records the token EVM address (the Solidity-facing representation of Hedera's token ID), payer, payee, arbiter, amount in smallest units, deadline and state. It checks exact token balance deltas on funding and settlement, consumes an explicit payer allowance, tracks escrow liabilities per token, and applies reentrancy protection. Tokens are not interchangeable with HBAR or arbitrary ERC-20 contracts by assumption; integrators remain responsible for token policy/trust.
+- **Association:** Each account/contract must have a token relationship before it receives an HTS token. The escrow exposes `associateToken` and calls the token's HIP-719 association facade as itself. The payer and payee associate from their own accounts before funding/release; payer approval is a separate ERC-20-compatible allowance step. Association and allowance are independent requirements. Testnet validated both contract self-association paths. The local fork cannot emulate this for newly deployed contracts: its `0x167` HIP-719 route requires a Hedera entity mapping, which local EVM deployments do not have.
 - **HCS:** Planned optional audit messages with a versioned event schema. Secrets and unnecessary personal data must never enter messages.
 - **Mirror Node:** Planned read-only transaction, event, and HCS history support. No API integration exists yet.
 
-The upstream starter's ERC-20 and HTS token creation examples remain separate from PaymentEscrow and are not used for this HBAR lifecycle. Payment events carry stable IDs and state transition data for future Mirror Node indexing and optional HCS correlation.
+The upstream HTS token-creation example remains a token provisioning utility, separate from both escrow contracts. Payment events carry stable IDs and state transition data for future Mirror Node indexing and optional HCS correlation. M5 and later remain unstarted.
 
 ## Frontend and developer tooling
 
@@ -77,7 +80,7 @@ The frontend is the upstream Scaffold HBAR Next.js App Router package with its w
 
 ## Testing and deployment
 
-The Hardhat unit tests exercise the escrow lifecycle on the configured local Hedera EVM fork, including balance/accounting checks, event data, deadline boundaries, invalid transitions, and a callback reentrancy attempt. Testnet smoke checks remain opt-in with a disposable, explicitly configured account. Deployments must be opt-in and network-specific; local development and automated tests do not require a funded network account.
+The Hardhat unit tests exercise escrow lifecycle semantics using token doubles and the local fork diagnostic identifies its entity-mapping limitation. The separate Testnet M4.1 smoke run exercised actual HTS association and settlement with token `0.0.10843331`; `TokenPaymentEscrow` is deployed at `0xa1069144BAc92E69634F8af332C92d053d9e72bb` (`0.0.10843288`). See the development log for transaction evidence and final balances. Deployments and future smoke runs must remain opt-in and network-specific; local development and automated tests do not require a funded network account.
 
 ## Environment and security assumptions
 

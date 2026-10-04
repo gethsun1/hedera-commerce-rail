@@ -89,14 +89,50 @@ read-only inspection:
 | Public HCS audit topic | `0.0.10844125` |
 
 These are shared reference resources, not resources provisioned by validation.
-The local recipe does not write to them. Do not treat prior M4/M5 Testnet
-evidence as a new M10 transaction or as completion of M8.
+The local recipe does not write to them. M8's separate manual Testnet browser
+wallet lifecycle was completed and recorded; that evidence is separate from
+M10's deterministic local checks.
 
 ## Separate manual acceptance
 
-M10's automated checks do not replace the M8 browser wallet lifecycle. Keep
-the status **M8 manual browser wallet validation outstanding** until a person
-connects a controlled Testnet wallet and verifies the settlement and any
-separately authorized audit publication as described in
-[`reference-app.md`](reference-app.md#repeatable-testnet-validation). No
-automated result in this guide claims that evidence.
+M10's automated checks do not replace the M8 browser wallet lifecycle. The M8
+manual Testnet wallet lifecycle is recorded complete in the M8 milestone
+evidence; see [`reference-app.md`](reference-app.md#repeatable-testnet-validation)
+for the repeatable procedure and its scope. That prior manual activity is not
+counted as an M12 live transaction.
+
+## M12 fresh-machine validation (2026-10-04–05)
+
+Validation used an isolated shallow GitHub clone at the stated starting commit
+(`9a9ff063fb2fd95c83bb81d32401302cdf44627b`) and a separate Scaffold HBAR
+destination. The clean environment used Node.js 24.18.0 and the repository's
+declared npm 10.0.0, with an empty process environment and separate npm cache.
+No source `.env`, previous `node_modules`, build output, deployment directory,
+or SDK distribution was copied into either workspace.
+
+| Area | Validation performed | Result |
+| --- | --- | --- |
+| Fresh clone | GitHub clone; clean initial status; npm 10 `npm ci --legacy-peer-deps` | PASS |
+| Contracts | Hardhat compile, types, and Hedera-fork tests | PASS — 45 tests; one credential-gated Testnet read skipped |
+| SDK | Build, typecheck, and tests | PASS — 14 tests |
+| Next.js | Typecheck and production build without `.env` | PASS |
+| Browser/server boundary | Production asset inspection | PASS — 197 JavaScript assets |
+| Hedera Harness | `npm run harness:validate` with no credentials | PASS — `passed=true`, zero findings; all ten declared commands exited 0 |
+| Scaffold CLI | `create-scaffold-hbar@latest` (resolved to 0.4.1), public GitHub template, Next.js, Hardhat, npm, Testnet, Skills skipped | PASS — generation and dependency installation completed |
+| Generated scaffold | Hardhat compile/tests, SDK build/typecheck/tests, workspace typechecks, Next.js production build, browser scan | PASS — 45 contract tests and 14 SDK tests; one credential-gated read skipped |
+| Runtime | Generated app started with no credentials; requested `/` | PASS — HTTP 200; first development compile took about 97 seconds |
+| Documentation commands | Compared root commands with package scripts; verified CLI flags using its current `--help`; CLI generation completed | PASS |
+| Secret/template hygiene | Tracked secret-pattern and local-path scan; ignored env and generated-artifact checks | PASS — no real `.env`, private-key material, deployment JSON, VPS path, or temporary path in tracked/generated source |
+| Diff hygiene | `git diff --check` | PASS |
+
+The fresh npm install reported 84 audit findings (24 low, 28 moderate, 29
+high, 3 critical). M11's package-path and reachability analysis remains in
+[`security.md`](security.md); the install output is not evidence that those
+advisories were remediated. npm 10 completed the clean install without npm 12's
+six install-script policy warnings. The local/fork suites did not submit
+Testnet transactions or publish HCS messages.
+
+The scaffold's generated project remained Git-clean after build/test output;
+the hygiene scan excluded disposable `.git`, `node_modules`, and `.next` build
+directories while checking source and tracked files. Placeholder `.env.example`
+files are intentional and contain no credentials.

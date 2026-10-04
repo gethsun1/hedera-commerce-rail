@@ -1,4 +1,4 @@
-# Reference application (M8)
+# Reference application (M8; manual Testnet validation completed)
 
 The home page presents HBAR and HTS escrow, existing indexed M5 audit messages, and connected wallet settlement. The Scaffold HBAR RainbowKit/Wagmi connector supplies the signer to `@hedera-commerce/sdk/browser`. Shared SDK settlement code handles denomination conversion, input/term validation, ABI calls, chain checks, receipt confirmation, and error mapping. `@hedera-commerce/sdk/server` stays server-side for Mirror Node and the M5 HCS publisher.
 
@@ -41,4 +41,4 @@ Automated checks cannot approve wallet prompts. For the live HBAR check:
 5. Choose **Release** and approve. Capture its transaction hash and confirm **Released** state. Sign the following wallet message to authorize the independent audit publication; decline does not undo settlement.
 6. Wait for Mirror Node indexing. Confirm the source transaction, contract log, event ID, HCS status, topic sequence, and consensus timestamp in the panel/topic. Use the HashScan transaction links and the topic activity section to cross-check.
 
-**M8 manual browser wallet validation outstanding.** This procedure can be repeated with a wallet you control; automated validation does not count as wallet lifecycle evidence. The connected account must hold and associate the existing reference token; its public token record confirms the token exists and has six decimals, but does not establish ownership by a new developer's wallet.
+The M8 manual Testnet wallet lifecycle validation was completed. The procedure above is repeatable; a new developer must still use a wallet they control. That prior validation does not imply that a newly scaffolded project has deployed contracts, a provisioned topic, or token balances/associations. The connected account must hold and associate the existing reference token; the public token record confirms the token exists and has six decimals, but does not establish ownership by a new developer's wallet. Automated local tests and live wallet validation are separate evidence.

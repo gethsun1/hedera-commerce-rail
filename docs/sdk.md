@@ -1,12 +1,14 @@
 # Commerce SDK (Milestone 7)
 
-`packages/sdk` is the server-side/application integration package for Hedera Commerce Rail. Import it in Node.js/TypeScript applications; it has no Next.js UI dependency. From this repository, use `npm run sdk:build`, `npm run sdk:check-types`, and `npm run sdk:test`. It is private and is not published to npm.
+`packages/sdk` is the application integration package for Hedera Commerce Rail. Import it in Node.js/TypeScript applications; it has no Next.js UI dependency. Its `/browser` entry supports connected-wallet settlement, while `/server` supports server signing, HCS, and Mirror Node. From this repository, use `npm run sdk:build`, `npm run sdk:check-types`, and `npm run sdk:test`. It is private and is not published to npm.
 
 The SDK is a developer interface over the existing rails:
 
 - escrow contracts remain the settlement authority;
 - HCS is an optional, at-least-once audit stream;
 - Mirror Node is a read/query/correlation layer and may lag consensus.
+
+`createCommerceClient()` returns grouped capabilities: `escrow.hbar` for native HBAR lifecycle operations, `escrow.hts` for fungible-token operations and association/approval helpers, `audit` for M5 event normalization and optional HCS publishing, `mirror` for optional Mirror Node reads/correlation, and `close()` for resource cleanup. Use the browser entry for external-wallet settlement and the server entry for server-owned signing/HCS/Mirror Node; never put a server key in browser configuration. HBAR inputs are integer tinybars, HTS inputs are integer smallest token units, and no floating-point decimal conversion is performed. Lifecycle methods wait for successful receipts; an ambiguous timeout includes the transaction hash where known and should be checked before retrying. HCS publishing is at-least-once and there is no durable outbox. The SDK package is private and unpublished.
 
 ## Configure
 

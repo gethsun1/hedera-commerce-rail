@@ -24,34 +24,32 @@ Set `HEDERA_NETWORK=local` for SDK construction without credentials when a Heder
 
 The Scaffold HBAR CLI supports the framework and package-manager options declared in `template.json` upstream. Community templates are downloaded from GitHub repositories/refs, so the intended scaffold command depends on this repository being published and publicly accessible.
 
-## Planned system boundaries
+## System boundaries and source of truth
 
 ```mermaid
 flowchart LR
-  UI[Reference Next.js app] --> SDK[Commerce client / SDK]
-  SDK --> HBAR[PaymentEscrow: HBAR]
-  SDK --> TOKEN[TokenPaymentEscrow: fungible HTS]
-  TOKEN --> HTS[HTS token facade / allowance / association]
-  HBAR --> EVMEvents[Contract events]
-  TOKEN --> EVMEvents
-  EVMEvents --> Adapter[Server-side HCS event adapter]
-  Adapter --> HCS[Optional HCS audit topic]
-  UI --> Mirror[Mirror Node read utilities]
-  EVMEvents --> Mirror
+  Browser[Browser reference app] --> Wallet[External wallet]
+  Wallet --> Contracts[Hedera EVM escrow contracts]
+  Contracts --> HBAR[HBAR settlement]
+  Contracts --> HTS[HTS token settlement]
+  ServerSDK[Server SDK] --> Hiero[Hiero SDK]
+  Hiero --> HCS[Optional HCS audit topic]
+  ServerSDK --> Mirror[Mirror Node query/indexing]
+  Contracts --> Mirror
   HCS --> Mirror
 ```
 
-The diagram shows system boundaries. HBAR and HTS use separate escrow contracts so native-value funding semantics remain stable. Contract events are the canonical on-chain state transitions; HCS is an optional application audit stream rather than the source of escrow state. Mirror Node utilities are read-only projections and must handle indexing delay.
+The reference application is an example over reusable infrastructure; the template and SDK are the primary deliverables. HBAR and HTS use separate escrow contracts so native-value funding semantics remain stable. **The contract's stored settlement state and successful transaction receipts are authoritative.** Contract events describe state transitions. HCS is an optional immutable audit stream and never replaces contract state. Mirror Node is a read/query/indexing layer; it is eventually consistent and may lag consensus, so an absent result is not proof that a transaction failed.
 
 ## Milestone 7 — Commerce SDK
 
-`packages/sdk` is the server-side typed developer interface. It uses the Hardhat deployment JSON artifacts as its ABI/address metadata source and wraps the existing M5 event normalization/HCS publisher and M6 Mirror Node client/correlation functions. Those implementation modules now live behind SDK internal adapters; established Hardhat import paths remain compatibility re-exports. No second schema, publisher, or Mirror Node HTTP client is introduced. SDK callers provide explicit network-specific RPC signer and escrow addresses; HCS and Mirror Node remain optional. HBAR amounts remain tinybars (converted to Ethers' weibars only for transaction value); HTS amounts remain token smallest units. Settlement calls check stored payment asset/amount and wait for a successful receipt. HCS publication remains independent of settlement.
+`packages/sdk` is the typed application interface with separate browser and server entry points. It uses the Hardhat deployment JSON artifacts as its ABI/address metadata source and wraps the existing M5 event normalization/HCS publisher and M6 Mirror Node client/correlation functions. Those implementation modules now live behind SDK internal adapters; established Hardhat import paths remain compatibility re-exports. No second schema, publisher, or Mirror Node HTTP client is introduced. SDK callers provide explicit network-specific signer and escrow addresses; HCS and Mirror Node remain optional. HBAR amounts remain tinybars (converted to Ethers' weibars only for transaction value); HTS amounts remain token smallest units. Settlement calls check stored payment asset/amount and wait for a successful receipt. HCS publication remains independent of settlement.
 
-## Milestone 8 — Reference Application (code ready; live wallet evidence pending)
+## Milestone 8 — Reference Application (manual Testnet validation completed)
 
 The Next.js home page uses `@hedera-commerce/sdk/server` for Mirror Node and `@hedera-commerce/sdk/browser` for wallet-authorized settlement. The browser entry imports Ethers, deployed contract artifacts, and shared settlement helpers; it does not import Hiero, server credentials, HCS publisher, or Mirror Node code. Wallet connection comes from the existing Scaffold HBAR RainbowKit/Wagmi stack. HBAR and HTS settlement use the connected account as `msg.sender` and read payment state through the SDK. Shared SDK code handles chain checks, input/term validation, denomination conversion, ABI calls, receipt confirmation, and transaction error mapping.
 
-After a confirmed wallet transaction, a same-origin server route verifies the receipt and actual escrow log, reconstructs the event through the M5 schema, and publishes through the existing M5 publisher. This request runs independently and cannot change the settlement result. Server credentials remain server-side. Mirror Node indexing delays remain pending and can be retried. Controlled Testnet signing has not been performed in this environment.
+After a confirmed wallet transaction, a same-origin server route verifies the receipt and actual escrow log, reconstructs the event through the M5 schema, and publishes through the existing M5 publisher. This request runs independently and cannot change the settlement result. Server credentials remain server-side. Mirror Node indexing delays remain pending and can be retried. The M8 milestone record reports manual Testnet wallet lifecycle validation completed; local automated checks remain distinct from that live wallet evidence.
 
 ## Milestone 3 — native HBAR escrow
 

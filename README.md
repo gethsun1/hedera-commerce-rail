@@ -1,33 +1,41 @@
 # Hedera Commerce Rail
 
-A Scaffold HBAR template for programmable commerce settlement on Hedera. The planned reference flow is a buyer funding an escrow, approving service milestones, and releasing or refunding funds with an auditable history.
+A Scaffold HBAR template for programmable commerce settlement on Hedera. Its reference application demonstrates payer-created HBAR/HTS escrow with fund, release, and deadline/refund paths, plus independently authorized HCS audit publication and Mirror Node correlation.
 
-> **Status:** M8 reference code covers connected-wallet HBAR and HTS settlement, shared SDK transaction execution, independent server-side HCS audit publication, and Mirror Node correlation. **M8 manual browser wallet validation outstanding.** No live wallet-authorized HBAR settlement or HCS publication is claimed; see the [repeatable Testnet procedure](docs/reference-app.md#repeatable-testnet-validation).
+> **Status:** M8 reference code and manual Testnet wallet lifecycle validation are complete. M9 fresh scaffold, M10 Harness validation, and M11 production hardening are recorded. This template is infrastructure first: reusable HBAR/HTS settlement, HCS audit, and Mirror Node verification patterns, with a reference commerce app demonstrating their use. It is not a hosted payment product or a formal security-certified system.
 
-Milestone 7 adds the reusable server-side TypeScript SDK in [`packages/sdk`](packages/sdk/README.md), composing the existing contracts and M5/M6 adapters without changing settlement semantics. See the [SDK guide](docs/sdk.md) for configuration, public APIs, asset units, and transaction behavior.
+Milestone 7 adds the reusable TypeScript SDK in [`packages/sdk`](packages/sdk/README.md), composing the existing contracts and M5/M6 adapters without changing settlement semantics. See the [SDK guide](docs/sdk.md) for configuration, public APIs, asset units, and transaction behavior.
 
-The [Reference Application guide](docs/reference-app.md) explains wallet setup, the HBAR flow, and remaining validation limits. Configure `HCS_TOPIC_ID` in the Next.js server environment to read existing audit messages.
+The [Reference Application guide](docs/reference-app.md) explains wallet setup, the HBAR/HTS flows, audit authorization, and validation boundaries. Configure `HCS_TOPIC_ID` in the Next.js server environment to read indexed audit messages.
 
 ## Create a project
 
-The current CLI package is `create-scaffold-hbar`. From the repository root, run:
+The repository itself is the reusable template source. With Node.js >=20.18.3, npm 10, and Git installed, scaffold it from a new directory:
 
 ```bash
-npm create scaffold-hbar@latest -- --template gethsun1/hedera-commerce-rail
+npm create scaffold-hbar@latest -- \
+  --destination ./hedera-commerce-demo \
+  --template gethsun1/hedera-commerce-rail \
+  --frontend nextjs-app \
+  --solidity-framework hardhat \
+  --package-manager npm \
+  --network testnet \
+  --skip-hedera-skills \
+  --yes
 ```
 
-The CLI retrieves this repository's `main` branch from GitHub. Its `template.json` selects the verified Next.js, Hardhat, and npm combination. Git and Node.js >=20.18.3 are required.
+This uses the current CLI's explicit npm option and retrieves this public GitHub repository. `template.json` declares Next.js and Hardhat capabilities. The CLI requires Git identity (`user.name` and `user.email`) even for a scaffold. See the [official CLI options](https://github.com/hedera-dev/create-scaffold-hbar#cli-options). After generation, review the generated README and environment examples before configuring credentials.
 
 ## Local development
 
-Requirements: Node.js >=20.18.3, npm, and Git configured with `user.name` and `user.email`. The selected upstream baseline is Next.js + Hardhat; use the npm workspace commands below.
+Requirements: Node.js >=20.18.3, npm 10 (the lockfile declares `npm@10.0.0`), and Git configured with `user.name` and `user.email`. Commands below run from the repository root. Install from the lockfile, then start the Next.js reference application:
 
 ```bash
-npm install
+npm ci --legacy-peer-deps
 npm run dev
 ```
 
-`npm run dev` starts the Next.js application at `http://localhost:3000`; it compiles the contracts and builds the SDK first. Other useful commands:
+`npm run dev` builds the SDK and starts Next.js at `http://localhost:3000`. For a reproducible checkout, `npm ci --legacy-peer-deps` installs the committed lockfile. Useful checks (the Hardhat fork tests may need Testnet RPC read access):
 
 ```bash
 npm run build
@@ -42,7 +50,9 @@ npm run hardhat:check-types
 npm run check-browser-bundle -w @sh/nextjs
 ```
 
-Hardhat's baseline tests include Hedera-specific HTS precompile examples and may require the local Hedera fork node. See `packages/hardhat/README.md` for the upstream contract workflow. Do not use production accounts or real funds for development.
+`npm test` runs the Hardhat suite. `npm run hardhat:chain` starts the local Hedera EVM fork on port 8545 for workflows that need a persistent node. It is not a Hiero Local Node. SDK commands and the reference app are described below and in the linked guides.
+
+Hardhat's baseline tests include Hedera-specific HTS precompile examples and may need public Testnet RPC read access to initialize the local fork. See `packages/hardhat/README.md` for the contract workflow. Do not use production accounts or real funds for development.
 
 ### Native HBAR escrow
 
@@ -85,6 +95,8 @@ For local Hiero SDK access set `HEDERA_NETWORK=local`; this targets an independe
 
 Run `npm test` for the credential-free unit and local-fork suite. To opt into the read-only account lookup, set the Testnet variables in the root `.env` and run `HEDERA_TESTNET_INTEGRATION=true npm test`; this performs an account information query and sends no transaction.
 
+See [configuration and network setup](docs/configuration.md) for the environment-variable reference, Testnet/Mainnet separation, and deployment requirements. The browser uses the connected user's wallet signer for settlement; `HEDERA_PRIVATE_KEY` is a server/operator secret for optional server-side functions and is never passed to the browser.
+
 ## M10 automated validation
 
 The official [Hedera Harness](https://github.com/hedera-dev/hedera-harness) is pinned as a development dependency. Run `npm run harness:validate` from a clean checkout without local `.env` files for its deterministic static and command validators. The recipe invokes the credential-free regression commands and includes no deploy, HCS publish, or funded-chain stage. Its baseline install uses `npm ci --legacy-peer-deps` to match this repository's lockfile and Scaffold HBAR workspace dependencies.
@@ -102,6 +114,8 @@ Without a network wallet or configured topic, developers can load the UI and run
 - [Architecture](docs/architecture.md) — system boundaries, current foundation, and planned integration points.
 - [Milestones](docs/MILESTONES.md) — acceptance criteria and verification gates for the complete roadmap.
 - [Development log](docs/DEVELOPMENT_LOG.md) — reconnaissance findings and implementation record.
+- [Configuration](docs/configuration.md) — environment variables and network operations.
+- [Known limitations](docs/limitations.md) — delivery, indexing, key management, and template boundaries.
 
 ## Upstream foundation
 

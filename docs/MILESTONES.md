@@ -2,14 +2,6 @@
 
 Statuses are evidence-based. A milestone is complete only after its stated checks pass and its outcome is recorded in the development log.
 
-## Milestone 7 — Commerce SDK — COMPLETE
-
-- **Objective:** Provide a small typed server-side application interface over the already implemented HBAR/HTS contracts, M5 events/HCS, and M6 Mirror Node query/correlation.
-- **Implementation:** `packages/sdk`; no new contract or settlement authority. HCS and Mirror Node remain optional. Public guide: `docs/sdk.md`.
-- **Acceptance:** Explicit network/signer/contract config, asset-specific integer units, create/fund/release/refund, M5 schema reuse, HCS failure isolation, M6 adapter reuse, typed errors, secret-safe serialization, and SDK/regression/project checks.
-- **Validation:** Nine SDK tests pass; full project suite, M3/M4/M5/M6 regressions, SDK/Hardhat/Next.js typechecks, production and SDK builds, lint, Testnet read-only smoke, secret-pattern scan, and diff check pass. Details are recorded in the 2026-10-04 M7 development log entry.
-- **Scope boundary:** Stop after M7. M8 is not part of this work.
-
 ## Milestone 0 — Reconnaissance & Architecture — COMPLETE
 
 - **Objective:** Inspect the VPS, representative applications, and current Scaffold HBAR conventions; choose a bounded architecture.
@@ -58,14 +50,14 @@ Statuses are evidence-based. A milestone is complete only after its stated check
 - **Definition of done:** Contract interface and security assumptions reviewed; all validation recorded in the development log; no automatic deployment.
 - **Potential risks:** Arbiter trust, native HBAR denomination, and contract upgrade expectations.
 
-## Milestone 3.5 — Testnet Readiness & Deployment — INCOMPLETE (GitHub push blocked)
+## Milestone 3.5 — Testnet Readiness & Deployment — COMPLETE
 
 - **Objective:** Validate the configured ECDSA Testnet signer, deploy only the M3 `PaymentEscrow`, verify its on-network code, and publish a documented GitHub checkpoint.
 - **Credential handling:** The repository-root `.env` is ignored and remains local. The ECDSA signer is used for EVM/Hardhat operations; ED25519 credentials are not used for deployment.
 - **Deployment:** Hedera Testnet, chain ID 296; `PaymentEscrow` at `0x85a038f7FB8E01EBD6F0E5B02791E57Bfb6aa260` (Hedera contract `0.0.10842321`), transaction `0xb8dedb6bd8cf23ae03496594e15bb4f887a8b9e20d5b86f081f4ef06f15f1c13`, 2026-10-03 13:09:42 UTC.
 - **Verification:** Mirror Node contract and transaction results returned HTTP 200 / `SUCCESS`; Testnet JSON-RPC reported non-empty runtime bytecode and chain ID 296. No payment-flow transaction was sent.
-- **Definition of done:** Signer/account, M3 checks, secret protection, docs, and focused local commit are verified. GitHub push is still required to complete this checkpoint. M4 HTS integration has NOT started.
-- **GitHub checkpoint:** SSH push was rejected (`Permission denied (publickey)`). The authenticated GitHub CLI account has repository write access, but GitHub rejected publishing `.github/workflows/lint.yaml` because its OAuth token lacks the `workflow` scope. No credential was changed and no history was rewritten.
+- **Definition of done:** Signer/account, M3 checks, secret protection, docs, and the pushed repository checkpoint were verified. M4 was completed afterward.
+- **GitHub checkpoint history:** An earlier SSH push was rejected (`Permission denied (publickey`) and a token lacked the `workflow` scope; the repository was later pushed successfully through the configured HTTPS remote. No credential was changed and no history was rewritten for that checkpoint.
 - **Potential risks:** Testnet deployment is not an audit; arbiter trust and M3 limitations remain as documented.
 
 ## Milestone 4 — HTS Integration — COMPLETE (Testnet validated)
@@ -109,7 +101,7 @@ M5 adds `packages/hardhat/lib/hcs/{schema,publisher}.ts` and opt-in `hcs:topic:c
 - **Definition of done:** Complete after all regression/build/typecheck/lint/secret/diff checks recorded in the development log.
 - **Potential risks:** Mirror Node schema/version and service availability can change.
 
-## Milestone 7 — Commerce SDK — NOT STARTED
+## Milestone 7 — Commerce SDK — COMPLETE
 
 - **Objective:** Offer a stable developer API over contracts, assets, and history.
 - **Dependencies:** Milestones 2–6.
@@ -121,21 +113,22 @@ M5 adds `packages/hardhat/lib/hcs/{schema,publisher}.ts` and opt-in `hcs:topic:c
 - **Definition of done:** Example code can use the SDK without importing app internals.
 - **Potential risks:** Coupling ABI/client package versions and unstable API design.
 
-## Milestone 8 — Reference Application — CODE READY / MANUAL TESTNET VALIDATION REQUIRED
+The implementation is in `packages/sdk`; HCS and Mirror Node remain optional and the contracts remain settlement authority. The current API, browser/server split, units, receipt behavior, typed errors, and limitations are documented in [sdk.md](sdk.md). M12 clean validation results are in [validation.md](validation.md).
 
-- **Objective:** Demonstrate buyer-to-provider milestone settlement in a simple, polished UI.
+## Milestone 8 — Reference Application — COMPLETE
+
+- **Objective:** Demonstrate payer-to-payee HBAR/HTS escrow settlement and an indexed audit history in a simple reference UI.
 - **Dependencies:** Milestones 3 and 7; optional 5–6 for history.
-- **Implementation tasks:** Create payment, fund escrow, approve/release milestone, show refund path and audit history, and communicate wallet/network state.
+- **Implementation tasks:** Connect an external wallet; create and fund escrow; release or refund under contract authorization/deadline rules; authorize independent audit publication; show indexed provenance and wallet/network state.
 - **Files affected:** `packages/nextjs/app`, components, hooks, tests, screenshots/docs.
 - **Acceptance criteria:** A user can follow the full demo without hidden steps; pending/failed/success states are clear; test data is labeled.
 - **Automated tests:** Component/unit tests and browser smoke for the user path.
 - **Manual verification:** Run against local Hedera fork and later Testnet with disposable accounts.
 - **Definition of done:** Demo path is repeatable and does not require production credentials.
 - **Potential risks:** Wallet UX friction and delayed Mirror Node indexing.
-- **Current result:** Connected-wallet HBAR and HTS panels, shared SDK settlement execution/validation, an independent server HCS audit route, and Mirror Node event reconstruction/correlation are implemented. Automated checks and manual Testnet wallet validation determine final acceptance. See [reference application guide](reference-app.md).
-- **Hard stop:** Do not claim M8 accepted until required automated checks pass and at least one real HBAR wallet lifecycle is confirmed on Testnet.
+- **Current result:** Connected-wallet HBAR and HTS panels, shared SDK settlement execution/validation, an independent server HCS audit route, Mirror Node event reconstruction/correlation, and manual Testnet wallet lifecycle validation are complete. See [reference application guide](reference-app.md).
 
-## Milestone 9 — Developer Experience — NOT STARTED
+## Milestone 9 — Developer Experience — COMPLETE
 
 - **Objective:** Make this repository reliably scaffoldable through the published CLI.
 - **Dependencies:** Milestones 1–8; repository published at the intended GitHub path.
@@ -156,10 +149,10 @@ M5 adds `packages/hardhat/lib/hcs/{schema,publisher}.ts` and opt-in `hcs:topic:c
 - **Acceptance criteria:** Local/fork and Testnet boundaries are documented; live read check is explicitly opt-in and credential-gated; validation commands do not deploy or publish by surprise.
 - **Automated tests:** Hardhat (45 passing, one credential-gated test skipped), SDK (12 passing), Hardhat/SDK/Next.js typechecks and builds, browser-bundle check (198 assets), lint (warnings only), and official Harness recipe validation (passed with zero findings from an isolated clean workspace). The opt-in read-only Testnet account integration also passed separately; it was not part of Harness validation.
 - **Manual verification:** Existing Testnet resources and credential requirements are documented; no new shared resource was created or mutated for M10.
-- **Definition of done:** Complete for the defined automated template boundary. No Testnet write was performed. M8 manual wallet lifecycle remains outstanding.
+- **Definition of done:** Complete for the defined automated template boundary. No Testnet write was performed as part of M10. M8 manual wallet lifecycle was completed separately and is recorded in [reference-app.md](reference-app.md).
 - **Potential risks:** Hedera-forked tests depend on public RPC availability; mocked HCS/Mirror Node tests do not establish live service availability.
 
-## Milestone 11 — Security & Production Hardening — NOT STARTED
+## Milestone 11 — Security & Production Hardening — COMPLETE
 
 - **Objective:** Review contract, client, wallet, configuration, and supply-chain risks.
 - **Dependencies:** Feature-complete contracts/SDK/app.
@@ -171,7 +164,7 @@ M5 adds `packages/hardhat/lib/hcs/{schema,publisher}.ts` and opt-in `hcs:topic:c
 - **Definition of done:** No unresolved critical/high issues for the intended demo scope; limitations disclosed.
 - **Potential risks:** Automated tools miss logic flaws; external audits exceed hackathon scope.
 
-## Milestone 12 — Documentation & Fresh-Machine Validation — NOT STARTED
+## Milestone 12 — Documentation & Fresh-Machine Validation — COMPLETE
 
 - **Objective:** Prove a new developer can install, run, test, and understand the template.
 - **Dependencies:** Milestones 9–11.
@@ -182,6 +175,8 @@ M5 adds `packages/hardhat/lib/hcs/{schema,publisher}.ts` and opt-in `hcs:topic:c
 - **Manual verification:** Independent fresh-machine walkthrough and review.
 - **Definition of done:** Issues from walkthrough are fixed and steps are reproducible.
 - **Potential risks:** Toolchain drift and platform-specific instructions.
+
+M12's dated command results and fresh-environment evidence are recorded in [validation.md](validation.md). Its scope ends here; Milestone 13 remains unstarted.
 
 ## Milestone 13 — Hackathon Submission — NOT STARTED
 

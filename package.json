@@ -29,6 +29,7 @@
     "hardhat:lint-staged": "npm run lint-staged -w @sh/hardhat --",
     "hardhat:test": "npm run test -w @sh/hardhat --",
     "hardhat:verify": "npm run verify:contract -w @sh/hardhat --",
+    "harness:validate": "hedera-harness validate .harness/spec.yaml",
     "lint": "npm run next:lint -- && npm run hardhat:lint -- && npm run sdk:lint --",
     "next:build": "npm run sdk:build && npm run build -w @sh/nextjs --",
     "next:check-types": "npm run sdk:build && npm run check-types -w @sh/nextjs --",
@@ -45,6 +46,7 @@
   },
   "packageManager": "npm@10.0.0",
   "devDependencies": {
+    "hedera-harness": "1.2.2",
     "husky": "^9.1.6",
     "lint-staged": "^15.2.10"
   },

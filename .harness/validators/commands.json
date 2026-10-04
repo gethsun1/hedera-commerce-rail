@@ -1,0 +1,72 @@
+{
+  "name": "hedera-commerce-rail-regressions",
+  "description": "Credential-free contract, SDK, browser, frontend, and lint regressions.",
+  "requiresNoSecrets": true,
+  "forbiddenCommands": [
+    "npm run hardhat:deploy",
+    "npm run hcs:topic:create",
+    "npm run hcs:smoke"
+  ],
+  "commands": [
+    {
+      "name": "hardhat-tests",
+      "command": "npm run hardhat:test",
+      "timeoutMs": 600000,
+      "purpose": "Run escrow, HTS, HCS, Mirror Node adapter, and configuration tests on the project's Hedera fork setup."
+    },
+    {
+      "name": "hardhat-compile",
+      "command": "npm run hardhat:compile",
+      "timeoutMs": 300000,
+      "purpose": "Compile the Hardhat contracts."
+    },
+    {
+      "name": "hardhat-types",
+      "command": "npm run hardhat:check-types",
+      "timeoutMs": 180000,
+      "purpose": "Type-check Hardhat scripts and tests."
+    },
+    {
+      "name": "sdk-tests",
+      "command": "npm run sdk:test",
+      "timeoutMs": 300000,
+      "purpose": "Test SDK behavior, errors, and browser/server boundaries."
+    },
+    {
+      "name": "sdk-types",
+      "command": "npm run sdk:check-types",
+      "timeoutMs": 180000,
+      "purpose": "Type-check both SDK entry points."
+    },
+    {
+      "name": "sdk-build",
+      "command": "npm run sdk:build",
+      "timeoutMs": 300000,
+      "purpose": "Build the server and browser SDK distributions."
+    },
+    {
+      "name": "next-types",
+      "command": "npm run next:check-types",
+      "timeoutMs": 300000,
+      "purpose": "Type-check the Next.js application."
+    },
+    {
+      "name": "next-build",
+      "command": "npm run next:build",
+      "timeoutMs": 600000,
+      "purpose": "Build the scaffolded reference application."
+    },
+    {
+      "name": "browser-bundle-boundary",
+      "command": "npm run check-browser-bundle -w @sh/nextjs",
+      "timeoutMs": 180000,
+      "purpose": "Check generated browser assets for server-only SDK content."
+    },
+    {
+      "name": "lint",
+      "command": "npm run lint",
+      "timeoutMs": 300000,
+      "purpose": "Lint all workspaces."
+    }
+  ]
+}

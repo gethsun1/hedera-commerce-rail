@@ -147,17 +147,17 @@ M5 adds `packages/hardhat/lib/hcs/{schema,publisher}.ts` and opt-in `hcs:topic:c
 - **Definition of done:** Scaffold path and package-manager support are demonstrated from the actual published ref.
 - **Potential risks:** CLI version changes, GitHub access/rate limits, and package-manager rewrite behavior.
 
-## Milestone 10 — Automated Validation / Hedera Harness — NOT STARTED
+## Milestone 10 — Automated Validation / Hedera Harness — COMPLETE
 
-- **Objective:** Add repeatable validation tiers and harness recipe if it improves template quality.
+- **Objective:** Add repeatable validation tiers and a current Hedera Harness recipe for the reusable template.
 - **Dependencies:** Stable commands and workflows from Milestones 3–9.
-- **Implementation tasks:** Define build, unit, local-chain, Testnet, semantic, and deployment-validation tiers; add a Harness spec/validators where practical.
-- **Files affected:** CI workflows, scripts, `.harness/` recipe/spec, docs.
-- **Acceptance criteria:** Offline tiers run without secrets; live checks require explicit config and report skipped vs failed clearly.
-- **Automated tests:** CI on pull requests; recipe validation and smoke checks.
-- **Manual verification:** Run each tier and inspect safe handling of missing credentials.
-- **Definition of done:** Validation commands are documented, deterministic, and do not deploy by surprise.
-- **Potential risks:** External RPC flakiness and false failures from indexer delays.
+- **Implementation:** Pinned official `hedera-harness` 1.2.2 with a schema v2 recipe, static template/secret assertions, and a deterministic regression command set. No semantic agent stage or funded Testnet chain stage is enabled.
+- **Files affected:** Root package manifest/lockfile, `.harness/` recipe/validators, README, reference-app status, validation guide, milestone and development log.
+- **Acceptance criteria:** Local/fork and Testnet boundaries are documented; live read check is explicitly opt-in and credential-gated; validation commands do not deploy or publish by surprise.
+- **Automated tests:** Hardhat (45 passing, one credential-gated test skipped), SDK (12 passing), Hardhat/SDK/Next.js typechecks and builds, browser-bundle check (198 assets), lint (warnings only), and official Harness recipe validation (passed with zero findings from an isolated clean workspace). The opt-in read-only Testnet account integration also passed separately; it was not part of Harness validation.
+- **Manual verification:** Existing Testnet resources and credential requirements are documented; no new shared resource was created or mutated for M10.
+- **Definition of done:** Complete for the defined automated template boundary. No Testnet write was performed. M8 manual wallet lifecycle remains outstanding.
+- **Potential risks:** Hedera-forked tests depend on public RPC availability; mocked HCS/Mirror Node tests do not establish live service availability.
 
 ## Milestone 11 — Security & Production Hardening — NOT STARTED
 

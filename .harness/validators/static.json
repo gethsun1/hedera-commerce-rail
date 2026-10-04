@@ -1,0 +1,56 @@
+{
+  "name": "hedera-commerce-rail-static",
+  "description": "Template structure, package manager, and secret-file invariants.",
+  "jsonAssertions": [
+    {
+      "file": "package.json",
+      "path": "packageManager",
+      "equals": "npm@10.0.0"
+    },
+    {
+      "file": "template.json",
+      "path": "create-scaffold-hbar.defaults.packageManager",
+      "equals": "npm"
+    }
+  ],
+  "fileAssertions": {
+    "required": [
+      "AGENTS.md",
+      "README.md",
+      "template.json",
+      "packages/hardhat/contracts/PaymentEscrow.sol",
+      "packages/hardhat/contracts/TokenPaymentEscrow.sol",
+      "packages/sdk/src/browser.ts",
+      "packages/sdk/src/index.ts",
+      "packages/sdk/test/browser.test.ts",
+      "packages/hardhat/test/PaymentEscrow.test.ts",
+      "packages/hardhat/test/TokenPaymentEscrow.test.ts",
+      "packages/hardhat/test/hcs.test.ts",
+      "packages/hardhat/test/mirror-node.test.ts",
+      ".harness/spec.yaml",
+      ".harness/prd.md"
+    ],
+    "forbidden": [
+      ".env",
+      "packages/hardhat/.env",
+      "packages/nextjs/.env.local"
+    ]
+  },
+  "textAssertions": [
+    {
+      "file": "README.md",
+      "contains": [
+        "npm run harness:validate",
+        "CREDENTIAL-GATED",
+        "M8 manual browser wallet validation outstanding"
+      ]
+    },
+    {
+      "file": "packages/sdk/package.json",
+      "contains": [
+        "\"./browser\"",
+        "./dist/browser/src/browser.js"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+schemaVersion: 2
+
+name: hedera-commerce-rail-validation
+description: Deterministic local validation for the reusable Hedera Commerce Rail template.
+
+baseline:
+  commands:
+    - name: install
+      command: npm ci --legacy-peer-deps
+      timeoutMs: 600000
+
+validators:
+  static: .harness/validators/static.json
+  commands: .harness/validators/commands.json

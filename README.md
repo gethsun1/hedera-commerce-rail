@@ -2,7 +2,7 @@
 
 A Scaffold HBAR template for programmable commerce settlement on Hedera. The planned reference flow is a buyer funding an escrow, approving service milestones, and releasing or refunding funds with an auditable history.
 
-> **Status:** M8 reference code covers connected-wallet HBAR and HTS settlement, shared SDK transaction execution, independent server-side HCS audit publication, and Mirror Node correlation. HBAR and HTS wallet flows were manually validated on Testnet before M9; see the [repeatable Testnet procedure](docs/reference-app.md#repeatable-testnet-validation).
+> **Status:** M8 reference code covers connected-wallet HBAR and HTS settlement, shared SDK transaction execution, independent server-side HCS audit publication, and Mirror Node correlation. **M8 manual browser wallet validation outstanding.** No live wallet-authorized HBAR settlement or HCS publication is claimed; see the [repeatable Testnet procedure](docs/reference-app.md#repeatable-testnet-validation).
 
 Milestone 7 adds the reusable server-side TypeScript SDK in [`packages/sdk`](packages/sdk/README.md), composing the existing contracts and M5/M6 adapters without changing settlement semantics. See the [SDK guide](docs/sdk.md) for configuration, public APIs, asset units, and transaction behavior.
 
@@ -84,6 +84,12 @@ cp packages/nextjs/.env.example packages/nextjs/.env.local
 For local Hiero SDK access set `HEDERA_NETWORK=local`; this targets an independently running Hedera Local Node and needs no account credentials. The Scaffold HBAR `npm run hardhat:chain` fork is an EVM JSON-RPC node, not a Hiero SDK Local Node. For Testnet or Mainnet operations that sign server-side transactions, use a dedicated `HEDERA_ACCOUNT_ID` and `HEDERA_PRIVATE_KEY`. Hardhat deployment also accepts the upstream encrypted account workflow; it will never fall back to Hardhat's public local key on a Hedera network. `HEDERA_RPC_URL` overrides the Hardhat RPC endpoint. The Next.js app needs no server credentials to render or connect a user's wallet; its HCS topic and signing credentials are optional and only enable independent audit publishing. `NEXT_PUBLIC_*` values are browser-visible configuration and must never contain secrets. Never commit either local env file, account keys, mnemonics, or API credentials.
 
 Run `npm test` for the credential-free unit and local-fork suite. To opt into the read-only account lookup, set the Testnet variables in the root `.env` and run `HEDERA_TESTNET_INTEGRATION=true npm test`; this performs an account information query and sends no transaction.
+
+## M10 automated validation
+
+The official [Hedera Harness](https://github.com/hedera-dev/hedera-harness) is pinned as a development dependency. Run `npm run harness:validate` from a clean checkout without local `.env` files for its deterministic static and command validators. The recipe invokes the credential-free regression commands and includes no deploy, HCS publish, or funded-chain stage. Its baseline install uses `npm ci --legacy-peer-deps` to match this repository's lockfile and Scaffold HBAR workspace dependencies.
+
+The regression suite covers HBAR escrow transitions and authorization, HTS escrow behavior with local token doubles, HCS normalization/publication semantics, Mirror Node parsing and event correlation, SDK methods/errors, the browser/server boundary, frontend type/build checks, browser bundle inspection, and lint. These local results do not establish live Testnet behavior. The `HEDERA_TESTNET_INTEGRATION=true` Hardhat check is separately opt-in and **CREDENTIAL-GATED**: it is a read-only account lookup, requires a Testnet account and Hiero SDK credentials in the ignored root `.env`, makes no transaction, and is not run by the Harness recipe. See [the M10 validation guide](docs/validation.md) for tier boundaries and existing Testnet resource references.
 
 ## Fresh project and reference resources
 

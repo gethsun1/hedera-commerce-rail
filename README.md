@@ -2,9 +2,11 @@
 
 A Scaffold HBAR template for programmable commerce settlement on Hedera. The planned reference flow is a buyer funding an escrow, approving service milestones, and releasing or refunding funds with an auditable history.
 
-> **Status:** HBAR `PaymentEscrow`, fungible HTS `TokenPaymentEscrow`, the optional HCS audit publisher, and server-side Mirror Node query/correlation utilities are implemented and validated on Hedera Testnet. Contract state remains authoritative; HCS is the audit stream, and Mirror Node is the query/index/verification layer. A reference UI remains roadmap work.
+> **Status:** M8 reference code covers connected-wallet HBAR and HTS settlement, shared SDK transaction execution, independent server-side HCS audit publication, and Mirror Node correlation. Live wallet approvals have not been performed in this environment; see the [manual Testnet procedure](docs/reference-app.md#manual-testnet-validation-still-needed).
 
 Milestone 7 adds the reusable server-side TypeScript SDK in [`packages/sdk`](packages/sdk/README.md), composing the existing contracts and M5/M6 adapters without changing settlement semantics. See the [SDK guide](docs/sdk.md) for configuration, public APIs, asset units, and transaction behavior.
+
+The [Reference Application guide](docs/reference-app.md) explains wallet setup, the HBAR flow, and remaining validation limits. Configure `HCS_TOPIC_ID` in the Next.js server environment to read existing audit messages.
 
 ## Create a project
 

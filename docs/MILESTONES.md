@@ -121,7 +121,7 @@ M5 adds `packages/hardhat/lib/hcs/{schema,publisher}.ts` and opt-in `hcs:topic:c
 - **Definition of done:** Example code can use the SDK without importing app internals.
 - **Potential risks:** Coupling ABI/client package versions and unstable API design.
 
-## Milestone 8 — Reference Application — NOT STARTED
+## Milestone 8 — Reference Application — CODE READY / MANUAL TESTNET VALIDATION REQUIRED
 
 - **Objective:** Demonstrate buyer-to-provider milestone settlement in a simple, polished UI.
 - **Dependencies:** Milestones 3 and 7; optional 5–6 for history.
@@ -132,6 +132,8 @@ M5 adds `packages/hardhat/lib/hcs/{schema,publisher}.ts` and opt-in `hcs:topic:c
 - **Manual verification:** Run against local Hedera fork and later Testnet with disposable accounts.
 - **Definition of done:** Demo path is repeatable and does not require production credentials.
 - **Potential risks:** Wallet UX friction and delayed Mirror Node indexing.
+- **Current result:** Connected-wallet HBAR and HTS panels, shared SDK settlement execution/validation, an independent server HCS audit route, and Mirror Node event reconstruction/correlation are implemented. Automated checks and manual Testnet wallet validation determine final acceptance. See [reference application guide](reference-app.md).
+- **Hard stop:** Do not claim M8 accepted until required automated checks pass and at least one real HBAR wallet lifecycle is confirmed on Testnet.
 
 ## Milestone 9 — Developer Experience — NOT STARTED
 

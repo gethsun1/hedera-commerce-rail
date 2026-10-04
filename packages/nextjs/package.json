@@ -5,6 +5,7 @@
   "scripts": {
     "build": "next build",
     "check-types": "tsc --noEmit --incremental",
+    "check-browser-bundle": "node scripts/check-browser-bundle.mjs",
     "dev": "next dev",
     "format": "prettier --write . '!(node_modules|.next|contracts)/**/*'",
     "lint": "eslint .",

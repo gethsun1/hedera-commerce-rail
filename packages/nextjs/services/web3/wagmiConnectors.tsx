@@ -4,6 +4,9 @@ import { rainbowkitBurnerWallet } from "burner-connector";
 import * as chains from "viem/chains";
 import scaffoldConfig from "~~/scaffold.config";
 
+// Development keys expire when the browser tab closes.
+rainbowkitBurnerWallet.useSessionStorage = true;
+
 const wallets = [metaMaskWallet, walletConnectWallet];
 
 const DEV_CHAIN_IDS = new Set<number>([chains.hardhat.id, chains.foundry.id, chains.hederaTestnet.id]);

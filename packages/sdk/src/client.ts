@@ -3,8 +3,8 @@ import {
   Contract,
   JsonRpcProvider,
   Wallet,
-  type TransactionReceipt,
-  type TransactionResponse,
+  type Provider,
+  type Signer,
 } from "ethers";
 import {
   readHederaEnvironment,
@@ -41,6 +41,14 @@ import {
   SettlementError,
   ValidationError,
 } from "./errors";
+import {
+  assertPaymentTerms,
+  evmAddress,
+  executeSettlement,
+  hbarToWeibars,
+  positiveInteger,
+  validateHtsIdentity,
+} from "./internal/settlement";
 import hbarArtifact from "../../hardhat/deployments/hederaTestnet/PaymentEscrow.json";
 import htsArtifact from "../../hardhat/deployments/hederaTestnet/TokenPaymentEscrow.json";
 import htsTokenArtifact from "../../hardhat/artifacts/contracts/HederaToken.sol/HederaToken.json";
@@ -69,8 +77,10 @@ export type SettlementResult = {
   blockNumber: number;
 };
 export type SettlementConfig = {
-  rpcUrl: string;
-  privateKey: string;
+  rpcUrl?: string;
+  /** Use exactly one signer mode: application-owned private key or user-owned Ethers signer. */
+  privateKey?: string;
+  signer?: Signer;
   contracts: { hbar: string; hts: string };
 };
 export type HcsConfig = {
@@ -156,7 +166,6 @@ export type CommerceClientTestAdapters = {
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 const TOKEN_ID = /^\d+\.\d+\.\d+$/;
-const EVM_ADDRESS = /^0x[0-9a-fA-F]{40}$/;
 
 // ABI and default deployed address come from Hardhat's maintained deployment artifact.
 const ABI = { hbar: hbarArtifact.abi, hts: htsArtifact.abi } as const;
@@ -165,24 +174,10 @@ function validPositiveInteger(
   value: bigint | string | number,
   label: string,
 ): bigint {
-  if (typeof value === "number" && !Number.isSafeInteger(value))
-    throw new ValidationError(
-      `${label} must be a safe integer when supplied as a number.`,
-    );
-  let parsed: bigint;
-  try {
-    parsed = BigInt(value);
-  } catch (cause) {
-    throw new ValidationError(`${label} must be an integer.`, { cause });
-  }
-  if (parsed <= 0n)
-    throw new ValidationError(`${label} must be greater than zero.`);
-  return parsed;
+  return positiveInteger(value, label, ValidationError);
 }
 function address(value: string, label: string): string {
-  if (!EVM_ADDRESS.test(value) || value.toLowerCase() === ZERO_ADDRESS)
-    throw new ValidationError(`${label} must be a nonzero EVM address.`);
-  return value;
+  return evmAddress(value, label, ValidationError);
 }
 function validateAsset(asset: CommerceAsset): CommerceAsset {
   if (!asset || typeof asset !== "object")
@@ -190,37 +185,7 @@ function validateAsset(asset: CommerceAsset): CommerceAsset {
   if (asset.type === "HBAR") return asset;
   if (asset.type !== "HTS_FUNGIBLE")
     throw new ValidationError("Unsupported asset type.");
-  if (!TOKEN_ID.test(asset.tokenId))
-    throw new ValidationError(
-      "HTS tokenId must use numeric shard.realm.number format.",
-    );
-  address(asset.tokenAddress, "HTS tokenAddress");
-  const tokenNumber = BigInt(asset.tokenId.split(".")[2]);
-  const expectedAddress = `0x${tokenNumber.toString(16).padStart(40, "0")}`;
-  if (asset.tokenAddress.toLowerCase() !== expectedAddress)
-    throw new ValidationError(
-      "HTS tokenAddress does not correspond to tokenId.",
-    );
-  return asset;
-}
-
-function getCreateId(
-  receipt: TransactionReceipt,
-  contract: Contract,
-  eventName: string,
-): string {
-  for (const log of receipt.logs) {
-    try {
-      const parsed = contract.interface.parseLog(log);
-      if (parsed?.name === eventName) return parsed.args.paymentId.toString();
-    } catch {
-      /* Unrelated event ABI. */
-    }
-  }
-  throw new SettlementError(
-    `Confirmed create transaction did not contain ${eventName}.`,
-    receipt.hash,
-  );
+  return validateHtsIdentity(asset.tokenId, asset.tokenAddress);
 }
 
 export function buildCommerceClient(
@@ -229,40 +194,41 @@ export function buildCommerceClient(
 ) {
   if (config.network !== "testnet" && config.network !== "mainnet")
     throw new ConfigurationError("network must be testnet or mainnet.");
-  let provider: JsonRpcProvider | undefined;
-  let wallet: Wallet | undefined;
+  let provider: Provider | undefined;
+  let wallet: Signer | undefined;
   let settlementContracts: { hbar: string; hts: string } | undefined;
   if (config.settlement) {
-    if (!config.settlement.rpcUrl.trim())
-      throw new ConfigurationError("settlement.rpcUrl is required.");
-    try {
-      const rpcUrl = new URL(config.settlement.rpcUrl);
-      if (
-        !["https:", "http:"].includes(rpcUrl.protocol) ||
-        rpcUrl.username ||
-        rpcUrl.password
-      )
-        throw new Error();
-    } catch {
-      throw new ConfigurationError(
-        "settlement.rpcUrl must be an HTTP(S) URL without credentials.",
-      );
-    }
     if (!config.settlement.contracts)
       throw new ConfigurationError(
         "Both settlement escrow contract addresses are required.",
       );
-    try {
-      provider = new JsonRpcProvider(config.settlement.rpcUrl);
-    } catch {
+    if (!!config.settlement.privateKey === !!config.settlement.signer)
       throw new ConfigurationError(
-        "settlement.rpcUrl could not initialize an EVM provider.",
+        "Configure exactly one settlement signer mode: privateKey or signer.",
       );
-    }
     try {
-      wallet = new Wallet(config.settlement.privateKey, provider);
+      if (config.settlement.signer) {
+        wallet = config.settlement.signer;
+        if (!wallet.provider)
+          throw new Error("External signer requires a connected provider.");
+        provider = wallet.provider;
+      } else {
+        if (!config.settlement.rpcUrl?.trim())
+          throw new ConfigurationError(
+            "settlement.rpcUrl is required for server signer mode.",
+          );
+        const rpcUrl = new URL(config.settlement.rpcUrl);
+        if (
+          !["https:", "http:"].includes(rpcUrl.protocol) ||
+          rpcUrl.username ||
+          rpcUrl.password
+        )
+          throw new Error();
+        provider = new JsonRpcProvider(config.settlement.rpcUrl);
+        wallet = new Wallet(config.settlement.privateKey!, provider);
+      }
     } catch {
-      throw new ConfigurationError("settlement.privateKey is invalid.");
+      throw new ConfigurationError("Settlement signer is invalid.");
     }
     settlementContracts = {
       hbar: address(
@@ -360,57 +326,32 @@ export function buildCommerceClient(
         );
       }
     }
-    const contract = new Contract(contractAddress, ABI[input.kind], wallet);
-    let submitted: TransactionResponse | undefined;
-    try {
-      const expectedChainId = config.network === "testnet" ? 296n : 295n;
-      if ((await wallet.provider!.getNetwork()).chainId !== expectedChainId)
-        throw new SettlementError(
-          `Configured ${config.network} does not match the settlement RPC network.`,
-        );
-      submitted = (await contract.getFunction(input.method)(
-        ...input.args,
-        ...(input.value !== undefined ? [{ value: input.value }] : []),
-      )) as TransactionResponse;
-      const receipt = await submitted.wait();
-      if (!receipt || receipt.status !== 1)
-        throw new SettlementError(
-          `Settlement ${input.operation} transaction was confirmed with a failed receipt.`,
-          submitted.hash,
-          { status: "failed" },
-        );
-      const paymentId = input.createEvent
-        ? getCreateId(receipt, contract, input.createEvent)
-        : input.paymentId;
-      return {
-        transactionId: submitted.hash,
-        transactionHash: submitted.hash,
-        network: config.network,
-        contractAddress,
-        operation: input.operation,
-        status: "confirmed" as const,
-        ...(paymentId ? { paymentId } : {}),
-        asset: input.asset,
-        ...(input.amount !== undefined
-          ? { amount: input.amount.toString() }
-          : {}),
-        blockNumber: receipt.blockNumber,
-      } satisfies SettlementResult;
-    } catch (cause) {
-      if (cause instanceof SettlementError) throw cause;
-      const hash =
-        submitted?.hash ??
-        (cause as { transaction?: { hash?: string }; transactionHash?: string })
-          ?.transaction?.hash ??
-        (cause as { transactionHash?: string })?.transactionHash;
-      throw new SettlementError(
-        submitted
-          ? `Settlement ${input.operation} was submitted but confirmation was not observed; inspect the transaction before retrying.`
-          : `Settlement ${input.operation} failed before submission.`,
-        hash,
-        { cause, status: submitted ? "submitted" : "failed" },
-      );
-    }
+    const result = await executeSettlement({
+      network: config.network,
+      signer: wallet,
+      contractAddress,
+      abi: ABI[input.kind],
+      method: input.method,
+      args: input.args,
+      operation: input.operation,
+      ...(input.value === undefined ? {} : { value: input.value }),
+      ...(input.createEvent ? { createEvent: input.createEvent } : {}),
+    });
+    const paymentId = result.paymentId ?? input.paymentId;
+    return {
+      transactionId: result.transactionHash,
+      transactionHash: result.transactionHash,
+      network: config.network,
+      contractAddress,
+      operation: input.operation,
+      status: "confirmed" as const,
+      ...(paymentId ? { paymentId } : {}),
+      asset: input.asset,
+      ...(input.amount !== undefined
+        ? { amount: input.amount.toString() }
+        : {}),
+      blockNumber: result.receipt.blockNumber,
+    } satisfies SettlementResult;
   }
   async function verifyPaymentTerms(
     kind: "hbar" | "hts",
@@ -425,24 +366,7 @@ export function buildCommerceClient(
         contractAddress: contracts[kind],
         paymentId,
       });
-      if (terms.asset.type !== asset.type)
-        throw new ValidationError(
-          "Asset does not match the asset stored in this payment.",
-        );
-      if (
-        terms.asset.type === "HTS_FUNGIBLE" &&
-        asset.type === "HTS_FUNGIBLE" &&
-        (terms.asset.tokenId !== asset.tokenId ||
-          terms.asset.tokenAddress.toLowerCase() !==
-            asset.tokenAddress.toLowerCase())
-      )
-        throw new ValidationError(
-          "HTS asset does not match the token stored in this payment.",
-        );
-      if (amount !== undefined && amount !== terms.amount)
-        throw new ValidationError(
-          "Amount does not match the amount stored in this payment.",
-        );
+      assertPaymentTerms(asset, terms.asset, amount, terms.amount);
       return terms;
     }
     const contract = new Contract(contracts[kind], ABI[kind], wallet);
@@ -456,20 +380,8 @@ export function buildCommerceClient(
               tokenId: (asset as HtsFungibleAsset).tokenId,
               tokenAddress: String(payment.token),
             };
-      if (
-        kind === "hts" &&
-        (asset as HtsFungibleAsset).tokenAddress.toLowerCase() !==
-          String(payment.token).toLowerCase()
-      ) {
-        throw new ValidationError(
-          "HTS asset does not match the token stored in this payment.",
-        );
-      }
       const onChainAmount = BigInt(payment.amount);
-      if (amount !== undefined && amount !== onChainAmount)
-        throw new ValidationError(
-          "Amount does not match the amount stored in this payment.",
-        );
+      assertPaymentTerms(asset, onChainAsset, amount, onChainAmount);
       return { asset: onChainAsset, amount: onChainAmount };
     } catch (cause) {
       if (cause instanceof ValidationError) throw cause;
@@ -543,7 +455,7 @@ export function buildCommerceClient(
             "Asset type does not match the escrow rail.",
           );
         // Ethers encodes value in weibars; Solidity's HBAR amount is tinybars (10^10 weibars each).
-        const value = kind === "hbar" ? amount * 10_000_000_000n : undefined;
+        const value = kind === "hbar" ? hbarToWeibars(amount) : undefined;
         return verifyPaymentTerms(kind, id, chosenAsset, amount).then((terms) =>
           transact({
             kind,
@@ -616,51 +528,28 @@ export function buildCommerceClient(
               const normalized = validateAsset(chosenAsset) as HtsFungibleAsset;
               const parsedAmount = validPositiveInteger(amount, "amount");
               const { wallet } = requireSettlement();
-              const tokenContract = new Contract(
-                normalized.tokenAddress,
-                htsTokenArtifact.abi,
-                wallet,
-              );
               return (async () => {
-                try {
-                  const expectedChainId =
-                    config.network === "testnet" ? 296n : 295n;
-                  if (
-                    (await wallet.provider!.getNetwork()).chainId !==
-                    expectedChainId
-                  )
-                    throw new SettlementError(
-                      `Configured ${config.network} does not match the settlement RPC network.`,
-                    );
-                  const tx = (await tokenContract.getFunction("approve")(
-                    settlementContracts!.hts,
-                    parsedAmount,
-                  )) as TransactionResponse;
-                  const receipt = await tx.wait();
-                  if (!receipt || receipt.status !== 1)
-                    throw new SettlementError(
-                      "HTS approval transaction failed.",
-                      tx.hash,
-                    );
-                  return {
-                    transactionId: tx.hash,
-                    transactionHash: tx.hash,
-                    network: config.network,
-                    contractAddress: normalized.tokenAddress,
-                    operation: "approve" as const,
-                    status: "confirmed" as const,
-                    paymentId: id.toString(),
-                    asset: normalized,
-                    amount: parsedAmount.toString(),
-                    blockNumber: receipt.blockNumber,
-                  } satisfies SettlementResult;
-                } catch (cause) {
-                  if (cause instanceof SettlementError) throw cause;
-                  throw new SettlementError("HTS approval failed.", undefined, {
-                    cause,
-                    status: "failed",
-                  });
-                }
+                const result = await executeSettlement({
+                  network: config.network,
+                  signer: wallet,
+                  contractAddress: normalized.tokenAddress,
+                  abi: htsTokenArtifact.abi,
+                  method: "approve",
+                  args: [settlementContracts!.hts, parsedAmount],
+                  operation: "approve",
+                });
+                return {
+                  transactionId: result.transactionHash,
+                  transactionHash: result.transactionHash,
+                  network: config.network,
+                  contractAddress: normalized.tokenAddress,
+                  operation: "approve" as const,
+                  status: "confirmed" as const,
+                  paymentId: id.toString(),
+                  asset: normalized,
+                  amount: parsedAmount.toString(),
+                  blockNumber: result.receipt.blockNumber,
+                } satisfies SettlementResult;
               })();
             },
           }
@@ -751,7 +640,8 @@ export function buildCommerceClient(
       : undefined,
     close() {
       hederaClient?.close();
-      void provider?.destroy();
+      const destroy = (provider as JsonRpcProvider | undefined)?.destroy;
+      if (destroy) void destroy.call(provider);
     },
     toJSON() {
       return {
@@ -765,6 +655,57 @@ export function buildCommerceClient(
     },
   };
   return client;
+}
+
+/** Read escrow state through the server SDK without configuring any signer. */
+export function createCommerceReader(config: {
+  network: CommerceNetwork;
+  rpcUrl?: string;
+  contracts: { hbar: string; hts: string };
+}) {
+  const rpcUrl =
+    config.rpcUrl ??
+    (config.network === "testnet"
+      ? "https://testnet.hashio.io/api"
+      : "https://mainnet.hashio.io/api");
+  const provider = new JsonRpcProvider(rpcUrl);
+  const contracts = {
+    hbar: address(config.contracts.hbar, "contracts.hbar"),
+    hts: address(config.contracts.hts, "contracts.hts"),
+  };
+  return {
+    async readPayment(kind: "hbar" | "hts", paymentId: string) {
+      const chain = await provider.getNetwork();
+      if (chain.chainId !== (config.network === "testnet" ? 296n : 295n))
+        throw new ConfigurationError(
+          "Reader RPC is connected to the wrong Hedera network.",
+        );
+      const id = validPositiveInteger(paymentId, "paymentId");
+      const contract = new Contract(contracts[kind], ABI[kind], provider);
+      try {
+        const payment = await contract.getFunction("getPayment")(id);
+        return {
+          paymentId: id.toString(),
+          payer: String(payment.payer),
+          payee: String(payment.payee),
+          arbiter: String(payment.arbiter),
+          amount: String(payment.amount),
+          tokenAddress: kind === "hts" ? String(payment.token) : null,
+          deadline: String(payment.deadline),
+          state: Number(payment.state),
+        };
+      } catch (cause) {
+        throw new SettlementError(
+          "Unable to read payment state from escrow.",
+          undefined,
+          { cause, status: "failed" },
+        );
+      }
+    },
+    close() {
+      void provider.destroy();
+    },
+  };
 }
 
 export type {

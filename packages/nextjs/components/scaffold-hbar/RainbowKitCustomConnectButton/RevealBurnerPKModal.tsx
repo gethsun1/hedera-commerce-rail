@@ -1,5 +1,4 @@
 import { useRef } from "react";
-import { rainbowkitBurnerWallet } from "burner-connector";
 import {
   CheckIcon,
   ClipboardDocumentIcon,
@@ -18,8 +17,7 @@ export const RevealBurnerPKModal = () => {
 
   const handleCopyPK = async () => {
     try {
-      const storage = rainbowkitBurnerWallet.useSessionStorage ? sessionStorage : localStorage;
-      const burnerPK = storage?.getItem(BURNER_WALLET_PK_KEY);
+      const burnerPK = sessionStorage.getItem(BURNER_WALLET_PK_KEY);
       if (!burnerPK) throw new Error("Burner wallet private key not found");
       await copyToClipboard(burnerPK);
       notification.success("Burner wallet private key copied to clipboard");

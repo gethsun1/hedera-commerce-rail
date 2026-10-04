@@ -1,5 +1,4 @@
 import { useRef, useState } from "react";
-import { rainbowkitBurnerWallet } from "burner-connector";
 import type { Hex } from "viem";
 import { useDisconnect } from "wagmi";
 import { KeyIcon, PencilSquareIcon, ShieldExclamationIcon, XMarkIcon } from "@heroicons/react/24/outline";
@@ -28,8 +27,7 @@ export const SetBurnerPKModal = () => {
       setIsSaving(true);
 
       const normalizedPk = normalizePrivateKey(pkInput);
-      const storage = rainbowkitBurnerWallet.useSessionStorage ? sessionStorage : localStorage;
-      storage?.setItem(BURNER_WALLET_PK_KEY, normalizedPk);
+      sessionStorage.setItem(BURNER_WALLET_PK_KEY, normalizedPk);
 
       notification.success("Burner wallet private key updated. Wallet will be disconnected.");
 

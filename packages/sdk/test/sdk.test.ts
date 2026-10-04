@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Wallet } from "ethers";
+import { JsonRpcProvider, Wallet } from "ethers";
 import {
   createCommerceClient,
   type CommerceAuditEventInput,
@@ -71,6 +71,22 @@ describe("Commerce SDK", () => {
     } catch (error) {
       expect(error).instanceOf(ConfigurationError);
     }
+  });
+
+  it("accepts a connected external signer without requiring or serializing a private key", () => {
+    const signer = Wallet.createRandom().connect(
+      new JsonRpcProvider("https://testnet.hashio.io/api"),
+    );
+    const client = createCommerceClient({
+      network: "testnet",
+      settlement: {
+        signer,
+        contracts: { hbar: token.tokenAddress, hts: token.tokenAddress },
+      },
+    });
+    expect(client.toJSON().capabilities.settlement).eq(true);
+    expect(JSON.stringify(client)).not.include(signer.privateKey);
+    client.close();
   });
 
   it("rejects malformed network, signer, RPC, and mirror configuration without exposing keys", () => {

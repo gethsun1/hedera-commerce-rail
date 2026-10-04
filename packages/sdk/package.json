@@ -10,6 +10,16 @@
       "types": "./dist/sdk/src/index.d.ts",
       "require": "./dist/sdk/src/index.js",
       "default": "./dist/sdk/src/index.js"
+    },
+    "./server": {
+      "types": "./dist/sdk/src/index.d.ts",
+      "require": "./dist/sdk/src/index.js",
+      "default": "./dist/sdk/src/index.js"
+    },
+    "./browser": {
+      "types": "./dist/sdk/src/browser.d.ts",
+      "require": "./dist/sdk/src/browser.js",
+      "default": "./dist/sdk/src/browser.js"
     }
   },
   "scripts": {

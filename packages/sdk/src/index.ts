@@ -5,6 +5,8 @@ export function createCommerceClient(config: CommerceClientConfig) {
   return buildCommerceClient(config);
 }
 
+export { createCommerceReader } from "./client";
+
 export type {
   CommerceAsset,
   CommerceClientConfig,
@@ -29,6 +31,8 @@ export type {
   EscrowPaymentSnapshot,
   EscrowSourceLog,
 } from "./internal/hcs/schema";
+export { normalizeEscrowLog } from "./internal/hcs/schema";
+export { createAuditAuthorizationMessage } from "./internal/audit-authorization";
 export {
   AuditError,
   CommerceSdkError,

@@ -10,6 +10,34 @@ The SDK is a developer interface over the existing rails:
 
 ## Configure
 
+Settlement supports two explicit signer modes. The existing server mode keeps the
+application-owned key on the server. For an external wallet, pass a connected
+Ethers v6 `Signer` (for example, one created from the app's existing Wagmi
+connector provider with `BrowserProvider`) and omit both `rpcUrl` and
+`privateKey`:
+
+```ts
+createCommerceClient({
+  network: "testnet",
+  settlement: {
+    signer: connectedWalletSigner,
+    contracts: { hbar: "0x...", hts: "0x..." },
+  },
+});
+```
+
+Use `@hedera-commerce/sdk/browser` for wallet settlement and
+`@hedera-commerce/sdk/server` for server-owned signing, HCS, and Mirror Node.
+The root entry remains a server compatibility alias. The browser API accepts
+only the connected wallet signer, checks chain ID 296/295 before reads and
+writes, and waits for a successful receipt. Shared settlement helpers handle
+input and stored-term validation, denomination conversion, ABI submission,
+receipt confirmation, and common error mapping. The browser API provides
+`read`, HTS account/escrow association, and payer allowance operations. It does
+not accept private-key settings or switch networks.
+
+Server mode remains:
+
 ```ts
 import { createCommerceClient } from "@hedera-commerce/sdk";
 

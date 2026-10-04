@@ -2,6 +2,14 @@
 
 Statuses are evidence-based. A milestone is complete only after its stated checks pass and its outcome is recorded in the development log.
 
+## Milestone 7 — Commerce SDK — COMPLETE
+
+- **Objective:** Provide a small typed server-side application interface over the already implemented HBAR/HTS contracts, M5 events/HCS, and M6 Mirror Node query/correlation.
+- **Implementation:** `packages/sdk`; no new contract or settlement authority. HCS and Mirror Node remain optional. Public guide: `docs/sdk.md`.
+- **Acceptance:** Explicit network/signer/contract config, asset-specific integer units, create/fund/release/refund, M5 schema reuse, HCS failure isolation, M6 adapter reuse, typed errors, secret-safe serialization, and SDK/regression/project checks.
+- **Validation:** Nine SDK tests pass; full project suite, M3/M4/M5/M6 regressions, SDK/Hardhat/Next.js typechecks, production and SDK builds, lint, Testnet read-only smoke, secret-pattern scan, and diff check pass. Details are recorded in the 2026-10-04 M7 development log entry.
+- **Scope boundary:** Stop after M7. M8 is not part of this work.
+
 ## Milestone 0 — Reconnaissance & Architecture — COMPLETE
 
 - **Objective:** Inspect the VPS, representative applications, and current Scaffold HBAR conventions; choose a bounded architecture.

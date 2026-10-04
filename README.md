@@ -4,6 +4,8 @@ A Scaffold HBAR template for programmable commerce settlement on Hedera. The pla
 
 > **Status:** HBAR `PaymentEscrow`, fungible HTS `TokenPaymentEscrow`, the optional HCS audit publisher, and server-side Mirror Node query/correlation utilities are implemented and validated on Hedera Testnet. Contract state remains authoritative; HCS is the audit stream, and Mirror Node is the query/index/verification layer. A reference UI remains roadmap work.
 
+Milestone 7 adds the reusable server-side TypeScript SDK in [`packages/sdk`](packages/sdk/README.md), composing the existing contracts and M5/M6 adapters without changing settlement semantics. See the [SDK guide](docs/sdk.md) for configuration, public APIs, asset units, and transaction behavior.
+
 ## Create a project
 
 The current CLI package is `create-scaffold-hbar`. From the repository root, run:
@@ -30,6 +32,9 @@ npm run build
 npm run lint
 npm test
 npm run hardhat:chain
+npm run sdk:test
+npm run sdk:check-types
+npm run sdk:build
 ```
 
 Hardhat's baseline tests include Hedera-specific HTS precompile examples and may require the local Hedera fork node. See `packages/hardhat/README.md` for the upstream contract workflow. Do not use production accounts or real funds for development.

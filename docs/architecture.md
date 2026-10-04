@@ -12,6 +12,7 @@ The repository follows the official Scaffold HBAR monorepo layout. Milestone 1 s
 packages/
   nextjs/       Next.js App Router, wallet integration, Scaffold HBAR UI
   hardhat/      Solidity workspace, deploy scripts, and upstream example tests
+  sdk/          server-side Commerce SDK; composes the rails and M5/M6 adapters
 docs/           Architecture, roadmap, and development journal
 ```
 
@@ -41,6 +42,10 @@ flowchart LR
 ```
 
 The diagram shows system boundaries. HBAR and HTS use separate escrow contracts so native-value funding semantics remain stable. Contract events are the canonical on-chain state transitions; HCS is an optional application audit stream rather than the source of escrow state. Mirror Node utilities are read-only projections and must handle indexing delay.
+
+## Milestone 7 — Commerce SDK
+
+`packages/sdk` is the server-side typed developer interface. It uses the Hardhat deployment JSON artifacts as its ABI/address metadata source and wraps the existing M5 event normalization/HCS publisher and M6 Mirror Node client/correlation functions. Those implementation modules now live behind SDK internal adapters; established Hardhat import paths remain compatibility re-exports. No second schema, publisher, or Mirror Node HTTP client is introduced. SDK callers provide explicit network-specific RPC signer and escrow addresses; HCS and Mirror Node remain optional. HBAR amounts remain tinybars (converted to Ethers' weibars only for transaction value); HTS amounts remain token smallest units. Settlement calls check stored payment asset/amount and wait for a successful receipt. HCS publication remains independent of settlement.
 
 ## Milestone 3 — native HBAR escrow
 

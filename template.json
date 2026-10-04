@@ -19,14 +19,14 @@
           "steps": [
             {
               "label": "Install dependencies",
-              "command": "npm install --legacy-peer-deps"
+              "command": "npm install"
             },
             {
               "label": "Start the reference app",
               "command": "npm run dev"
             },
             {
-              "text": "Commerce escrow integrations are roadmap work. Review README.md and docs/MILESTONES.md for current implementation status."
+              "text": "This template includes HBAR and HTS escrow reference flows, a server-side HCS audit path, and Mirror Node reads. Review README.md and docs/reference-app.md for setup and required reference resources."
             }
           ]
         }

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import hbarArtifact from "../../../../hardhat/deployments/hederaTestnet/PaymentEscrow.json";
-import htsArtifact from "../../../../hardhat/deployments/hederaTestnet/TokenPaymentEscrow.json";
+import hbarArtifact from "../../../../hardhat/artifacts/contracts/PaymentEscrow.sol/PaymentEscrow.json";
+import htsArtifact from "../../../../hardhat/artifacts/contracts/TokenPaymentEscrow.sol/TokenPaymentEscrow.json";
 import { createAuditAuthorizationMessage } from "@hedera-commerce/sdk/browser";
 import { createCommerceClient, createCommerceReader, normalizeEscrowLog } from "@hedera-commerce/sdk/server";
 import { Interface, JsonRpcProvider, type Log, verifyMessage } from "ethers";

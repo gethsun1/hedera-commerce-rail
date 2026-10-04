@@ -1,6 +1,6 @@
 import { Contract, type Signer } from "ethers";
-import hbarArtifact from "../../hardhat/deployments/hederaTestnet/PaymentEscrow.json";
-import htsArtifact from "../../hardhat/deployments/hederaTestnet/TokenPaymentEscrow.json";
+import hbarArtifact from "../../hardhat/artifacts/contracts/PaymentEscrow.sol/PaymentEscrow.json";
+import htsArtifact from "../../hardhat/artifacts/contracts/TokenPaymentEscrow.sol/TokenPaymentEscrow.json";
 import tokenArtifact from "../../hardhat/artifacts/contracts/HederaToken.sol/HederaToken.json";
 import { ConfigurationError, SettlementError, ValidationError } from "./errors";
 import {

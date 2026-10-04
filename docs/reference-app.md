@@ -4,7 +4,7 @@ The home page presents HBAR and HTS escrow, existing indexed M5 audit messages, 
 
 ## Run and configure
 
-Copy the relevant values from `packages/nextjs/.env.example` into the Next.js server environment. Set `HEDERA_NETWORK=testnet`, `HCS_TOPIC_ID` to the existing M5 topic, and configure the server-only `HEDERA_ACCOUNT_ID`, `HEDERA_PRIVATE_KEY`, and optional `HEDERA_RPC_URL` for audit publication. Never prefix credentials with `NEXT_PUBLIC_`. `MIRROR_NODE_BASE_URL` is optional and must be an HTTPS origin. Start from the repository root with `npm run next:dev` (`http://localhost:3000`). The overview remains read-only if no HCS operator is configured; settlement succeeds independently if audit publication is unavailable.
+Copy `packages/nextjs/.env.example` to `packages/nextjs/.env.local`. Set `HCS_TOPIC_ID` to a topic you control (the validation reference topic is Testnet `0.0.10844125`) to display audit messages. Configure the server-only `HEDERA_ACCOUNT_ID`, `HEDERA_PRIVATE_KEY`, and optional `HEDERA_RPC_URL` only if you want the server to publish audits. The page loads and wallet settlement works without these server credentials; HCS publication remains unavailable until configured. Never prefix credentials with `NEXT_PUBLIC_`. `MIRROR_NODE_BASE_URL` is optional and must be an HTTPS origin. Start from the repository root with `npm run next:dev` (`http://localhost:3000`).
 
 The server component queries the configured HCS topic and correlates M5 events with M6 Mirror Node contract results. The browser imports only `@hedera-commerce/sdk/browser`, resolves the signer from the active Scaffold connector, and validates Hedera Testnet chain ID 296 before reads and transactions.
 
@@ -16,7 +16,7 @@ After a confirmed release or refund, the page requests an independent audit oper
 
 ## HTS reference flow
 
-The panel uses existing M4 `TokenPaymentEscrow` and token `0.0.10843331` (Testnet, fungible, six decimals). It exposes user-account association, escrow association, create, exact payer allowance, fund, read, release, and refund. The token holder must connect their own wallet to associate and approve. The payer must own at least the selected smallest-unit amount; the panel does not assume token ownership or association. The escrow also needs token association. Contract authorization and deadlines remain authoritative. Use the read-only Testnet account/token relationships to confirm holdings and association before attempting a transaction; do not spend significant test tokens.
+The panel uses the reference M4 `TokenPaymentEscrow` and token `0.0.10843331` (Testnet, fungible, six decimals); scaffolding does not create them. It exposes user-account association, escrow association, create, exact payer allowance, fund, read, release, and refund. The token holder must connect their own wallet to associate and approve. The payer must own at least the selected smallest-unit amount; the panel does not assume token ownership or association. The escrow also needs token association. Contract authorization and deadlines remain authoritative. Use the read-only Testnet account/token relationships to confirm holdings and association before attempting a transaction; do not spend significant test tokens.
 
 The connected account is always the payer. The UI does not accept a payer address, pass operator credentials to client props, or place them in browser storage or URLs. No end-user can approve another account's allowance.
 
@@ -30,7 +30,7 @@ The Scaffold development burner wallet, when enabled, uses tab-scoped `sessionSt
 
 Rendering the page creates no transaction or HCS message. The activity list contains actual records from the configured Testnet topic, not simulated events.
 
-## Manual Testnet validation still needed
+## Repeatable Testnet validation
 
 Automated checks cannot approve wallet prompts. For the live HBAR check:
 
@@ -41,4 +41,4 @@ Automated checks cannot approve wallet prompts. For the live HBAR check:
 5. Choose **Release** and approve. Capture its transaction hash and confirm **Released** state. Sign the following wallet message to authorize the independent audit publication; decline does not undo settlement.
 6. Wait for Mirror Node indexing. Confirm the source transaction, contract log, event ID, HCS status, topic sequence, and consensus timestamp in the panel/topic. Use the HashScan transaction links and the topic activity section to cross-check.
 
-No live wallet was connected during this pass, so there are no transaction IDs to report. HTS live validation also depends on the connected account holding and associating the existing disposable token; the public token record confirms the token exists and has six decimals, but does not establish ownership by a future wallet.
+The HBAR and HTS wallet flows were manually validated on Testnet before the M9 scaffold validation. This procedure can be repeated with a wallet you control. The connected account must hold and associate the existing reference token; its public token record confirms the token exists and has six decimals, but does not establish ownership by a new developer's wallet.

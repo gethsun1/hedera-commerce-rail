@@ -49,8 +49,8 @@ import {
   positiveInteger,
   validateHtsIdentity,
 } from "./internal/settlement";
-import hbarArtifact from "../../hardhat/deployments/hederaTestnet/PaymentEscrow.json";
-import htsArtifact from "../../hardhat/deployments/hederaTestnet/TokenPaymentEscrow.json";
+import hbarArtifact from "../../hardhat/artifacts/contracts/PaymentEscrow.sol/PaymentEscrow.json";
+import htsArtifact from "../../hardhat/artifacts/contracts/TokenPaymentEscrow.sol/TokenPaymentEscrow.json";
 import htsTokenArtifact from "../../hardhat/artifacts/contracts/HederaToken.sol/HederaToken.json";
 
 export type CommerceNetwork = "testnet" | "mainnet";

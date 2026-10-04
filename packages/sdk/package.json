@@ -18,13 +18,15 @@
     },
     "./browser": {
       "types": "./dist/sdk/src/browser.d.ts",
+      "browser": "./dist/browser/src/browser.js",
       "require": "./dist/sdk/src/browser.js",
-      "default": "./dist/sdk/src/browser.js"
+      "import": "./dist/browser/src/browser.js",
+      "default": "./dist/browser/src/browser.js"
     }
   },
   "scripts": {
     "check-types": "tsc --noEmit",
-    "build": "tsc",
+    "build": "tsc && tsc -p tsconfig.browser.json && node scripts/write-browser-package.mjs",
     "lint": "eslint --config ../hardhat/eslint.config.mjs src test",
     "test": "TS_NODE_TRANSPILE_ONLY=true mocha --require ts-node/register \"test/**/*.test.ts\""
   },

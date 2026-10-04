@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { getReferenceActivity } from "./reference-data";
 import { SettlementPanel } from "./settlement-panel";
-import { ArrowUpRightIcon, CheckCircleIcon, ClockIcon, FingerPrintIcon } from "@heroicons/react/24/outline";
+import { RainbowKitCustomConnectButton } from "~~/components/scaffold-hbar";
+import { ArrowUpRightIcon, CheckCircleIcon, ClockIcon } from "@heroicons/react/24/outline";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +34,9 @@ export default async function Home() {
         <span className="network-pill">
           <i /> HEDERA TESTNET
         </span>
+        <div className="commerce-nav-wallet" aria-label="Wallet connection">
+          <RainbowKitCustomConnectButton />
+        </div>
       </header>
 
       <section className="hero">
@@ -59,42 +63,6 @@ export default async function Home() {
           </div>
           <div className="hero-note">
             <CheckCircleIcon /> Contract state is authoritative <span>·</span> HCS is the audit trail
-          </div>
-        </div>
-        <div className="flow-card" aria-label="Commerce payment lifecycle">
-          <div className="flow-head">
-            <span>PAYMENT LIFECYCLE</span>
-            <span className="flow-id">REFERENCE FLOW / 01</span>
-          </div>
-          <div className="flow-step">
-            <div className="flow-icon">01</div>
-            <div>
-              <b>Terms agreed</b>
-              <small>Payer · payee · asset · deadline</small>
-            </div>
-            <span className="step-state">CREATE</span>
-          </div>
-          <div className="flow-line" />
-          <div className="flow-step">
-            <div className="flow-icon active">02</div>
-            <div>
-              <b>Escrow funded</b>
-              <small>Exact amount held by the contract</small>
-            </div>
-            <span className="step-state">FUND</span>
-          </div>
-          <div className="flow-line" />
-          <div className="flow-step">
-            <div className="flow-icon">03</div>
-            <div>
-              <b>Release or refund</b>
-              <small>Contract rules decide who can act</small>
-            </div>
-            <span className="step-state">SETTLE</span>
-          </div>
-          <div className="flow-foot">
-            <FingerPrintIcon />
-            <span>Every transition can carry a traceable audit event.</span>
           </div>
         </div>
       </section>

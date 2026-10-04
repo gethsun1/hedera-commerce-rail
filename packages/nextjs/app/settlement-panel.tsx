@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { createAuditAuthorizationMessage, createBrowserCommerceClient } from "@hedera-commerce/sdk/browser";
-import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { BrowserProvider, type Eip1193Provider } from "ethers";
-import { useAccount, useDisconnect } from "wagmi";
+import { isAddress } from "viem";
+import { useAccount } from "wagmi";
 
 const HBAR_CONTRACT = "0x85a038f7FB8E01EBD6F0E5B02791E57Bfb6aa260";
 const HTS_CONTRACT = "0xa1069144BAc92E69634F8af332C92d053d9e72bb";
@@ -16,8 +16,6 @@ const HTS_TOKEN = {
 
 export function SettlementPanel() {
   const { address, chain, connector, isConnected } = useAccount();
-  const { disconnect } = useDisconnect();
-  const { openConnectModal } = useConnectModal();
   const [payee, setPayee] = useState("");
   const [amount, setAmount] = useState("");
   const [paymentId, setPaymentId] = useState("");
@@ -118,6 +116,11 @@ export function SettlementPanel() {
     act(async () => {
       if (!address) throw new Error("Connect a wallet first.");
       if (!correctNetwork) throw new Error("Switch wallet to Hedera Testnet (chain ID 296).");
+      if (!isAddress(payee)) throw new Error("Enter a valid payee EVM address.");
+      if (payee.toLowerCase() === address.toLowerCase())
+        throw new Error("The payee must be different from the connected payer account.");
+      if (!/^\d+$/.test(amount) || BigInt(amount) <= 0n)
+        throw new Error("Enter a positive whole-number amount in tinybars.");
       const sdk = await client();
       const created = await sdk.escrow.hbar.create({
         payee,
@@ -157,20 +160,9 @@ export function SettlementPanel() {
         </p>
       </div>
       {!isConnected ? (
-        <button className="primary-action" onClick={() => openConnectModal?.()}>
-          Connect wallet
-        </button>
+        <p role="status">Connect a wallet from the navigation bar to create a payment.</p>
       ) : (
         <>
-          <div className="wallet-status">
-            <span>{address}</span>
-            <b>
-              {chain?.name} · {chain?.id}
-            </b>
-            <button className="text-action" onClick={() => disconnect()}>
-              Disconnect
-            </button>
-          </div>
           {!correctNetwork && <p role="alert">Wrong network. Switch to Hedera Testnet (296) before settlement.</p>}
           <div className="settlement-form">
             <label>
@@ -188,12 +180,15 @@ export function SettlementPanel() {
             </label>
             <button
               className="primary-action"
-              disabled={busy || !correctNetwork || !payee || !amount}
+              disabled={busy || !correctNetwork}
               onClick={createAndFund}
             >
               {busy ? "Waiting for wallet…" : "Create and fund"}
             </button>
           </div>
+          <p className="form-hint">
+            Enter a different account as payee and a positive amount in tinybars. For example, 100000000 = 1 HBAR.
+          </p>
           <div className="settlement-form">
             <label>
               Existing payment ID

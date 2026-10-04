@@ -14,6 +14,7 @@ import {
 } from "../src/errors";
 import type { SettlementResult } from "../src";
 import { createCommerceClientWithAdapters } from "../src/internal/test-factory";
+import { createMirrorNodeClient, MirrorNodeError } from "../src/internal/mirror-node/client";
 
 const payerKey = Wallet.createRandom().privateKey;
 const token: HtsFungibleAsset = {
@@ -39,6 +40,44 @@ const baseEvent = {
 } as CommerceAuditEventInput;
 
 describe("Commerce SDK", () => {
+  it("rejects Mirror Node configurations that bypass HTTPS origin validation", () => {
+    for (const baseUrl of [
+      "http://127.0.0.1:8080",
+      "https://user:secret@example.com",
+      "https://example.com/api/v1",
+    ]) {
+      expect(
+        () => createMirrorNodeClient({ network: "testnet", baseUrl }),
+      ).to.throw(MirrorNodeError);
+    }
+  });
+
+  it("rejects Mirror Node responses larger than the bounded response budget", async () => {
+    const client = createCommerceClientWithAdapters(
+      {
+        network: "testnet",
+        mirrorNode: { baseUrl: "https://mirror.example" },
+      },
+      {
+        mirrorClient: createMirrorNodeClient(
+          { network: "testnet", baseUrl: "https://mirror.example" },
+          async () =>
+            new Response("{}", {
+              headers: { "content-length": String(5 * 1024 * 1024 + 1) },
+            }),
+        ),
+      },
+    );
+    try {
+      await client.mirror!.getContract("0.0.1");
+      expect.fail("expected an oversized Mirror Node response to be rejected");
+    } catch (error) {
+      expect(error).instanceOf(MirrorNodeError);
+      expect((error as Error).message).to.contain("5 MiB safety limit");
+    }
+    client.close();
+  });
+
   it("constructs independent capabilities and serializes no signer material", () => {
     const client = createCommerceClient({
       network: "testnet",

@@ -50,7 +50,7 @@ Hardhat's baseline tests include Hedera-specific HTS precompile examples and may
 
 Run only the escrow tests with `npm run hardhat:test -- --grep PaymentEscrow`. The reference Testnet deployment is [`0x85a038f7FB8E01EBD6F0E5B02791E57Bfb6aa260`](https://hashscan.io/testnet/contract/0.0.10842321), deployed in transaction [`0xb8dedb6bd8cf23ae03496594e15bb4f887a8b9e20d5b86f081f4ef06f15f1c13`](https://hashscan.io/testnet/transaction/0xb8dedb6bd8cf23ae03496594e15bb4f887a8b9e20d5b86f081f4ef06f15f1c13). This reference ID is specific to Hedera Testnet and is not created when someone scaffolds the project.
 
-Scaffolded projects contain no configured account or credentials. For a deployment, use a dedicated ECDSA account with Testnet HBAR. The explicit deployment command is `npm run hardhat:deploy -- --network hederaTestnet --tags PaymentEscrow`; it spends Testnet gas and is never part of build or tests. Hardhat scripts load the repository-root `.env` before package-local settings. See [docs/architecture.md](docs/architecture.md) for lifecycle and security assumptions.
+Scaffolded projects contain no configured account or credentials. For a deployment, use a dedicated ECDSA account with Testnet HBAR. The explicit deployment command is `npm run hardhat:deploy -- --network hederaTestnet --tags PaymentEscrow`; it spends Testnet gas and is never part of build or tests. Hardhat scripts load the repository-root `.env` before package-local settings. See [docs/architecture.md](docs/architecture.md) for lifecycle details and [docs/security.md](docs/security.md) for security assumptions and residual risks.
 
 ### Fungible HTS token escrow
 

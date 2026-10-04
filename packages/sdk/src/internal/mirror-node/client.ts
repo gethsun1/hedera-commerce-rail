@@ -114,6 +114,9 @@ const TX_ID = /^\d+\.\d+\.\d+(?:-[a-zA-Z0-9]+)?@[0-9]+\.[0-9]{1,9}$/;
 const TIMESTAMP = /^\d{1,10}(?:\.\d{1,9})?$/;
 const MAX_PAGE_SIZE = 100;
 const MAX_PAGES = 100;
+const MAX_RESPONSE_BYTES = 5 * 1024 * 1024;
+const REQUEST_TIMEOUT_MS = 15_000;
+class MirrorResponseTooLargeError extends Error {}
 const ESCROW_EVENTS = new Interface([
   "event PaymentCreated(uint256 indexed paymentId,address indexed payer,address indexed payee,address arbiter,uint256 amount,address asset,uint64 createdAt,uint64 deadline)",
   "event PaymentFunded(uint256 indexed paymentId,address indexed payer,uint256 amount,address asset)",
@@ -485,7 +488,29 @@ export function createMirrorNodeClient(
   config = readMirrorNodeConfig(),
   fetcher: typeof fetch = fetch,
 ) {
-  const base = new URL(config.baseUrl);
+  let base: URL;
+  try {
+    base = new URL(config.baseUrl);
+  } catch {
+    throw new MirrorNodeError(
+      "CONFIGURATION_ERROR",
+      "Mirror Node base URL must be a valid HTTPS origin.",
+    );
+  }
+  if (
+    (config.network !== "testnet" && config.network !== "mainnet") ||
+    base.protocol !== "https:" ||
+    base.username ||
+    base.password ||
+    base.search ||
+    base.hash ||
+    (base.pathname !== "/" && base.pathname !== "")
+  ) {
+    throw new MirrorNodeError(
+      "CONFIGURATION_ERROR",
+      "Mirror Node configuration must use a network and HTTPS origin without credentials, path, query, or fragment.",
+    );
+  }
   async function requestWithStatus(
     pathOrUrl: string,
   ): Promise<{ data: unknown; status: number }> {
@@ -512,6 +537,7 @@ export function createMirrorNodeClient(
       response = await fetcher(url, {
         headers: { accept: "application/json" },
         redirect: "error",
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       });
     } catch {
       throw new MirrorNodeError(
@@ -535,9 +561,58 @@ export function createMirrorNodeClient(
         response.headers.get("retry-after") ?? undefined,
       );
     }
+    const contentLength = Number(response.headers.get("content-length"));
+    if (Number.isFinite(contentLength) && contentLength > MAX_RESPONSE_BYTES)
+      throw new MirrorNodeError(
+        "UPSTREAM_ERROR",
+        "Mirror Node response exceeded the 5 MiB safety limit.",
+        response.status,
+      );
+    let body: string;
+    try {
+      if (!response.body) body = await response.text();
+      else {
+        const reader = response.body.getReader();
+        const chunks: Uint8Array[] = [];
+        let size = 0;
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            size += value.byteLength;
+            if (size > MAX_RESPONSE_BYTES) {
+              await reader.cancel();
+              throw new MirrorResponseTooLargeError();
+            }
+            chunks.push(value);
+          }
+        } finally {
+          reader.releaseLock();
+        }
+        const bytes = new Uint8Array(size);
+        let offset = 0;
+        for (const chunk of chunks) {
+          bytes.set(chunk, offset);
+          offset += chunk.byteLength;
+        }
+        body = new TextDecoder().decode(bytes);
+      }
+    } catch (cause) {
+      if (cause instanceof MirrorResponseTooLargeError)
+        throw new MirrorNodeError(
+          "UPSTREAM_ERROR",
+          "Mirror Node response exceeded the 5 MiB safety limit.",
+          response.status,
+        );
+      throw new MirrorNodeError(
+        "UPSTREAM_ERROR",
+        "Mirror Node response body could not be read.",
+        response.status,
+      );
+    }
     try {
       return {
-        data: parseJsonPreservingLargeIntegers(await response.text()),
+        data: parseJsonPreservingLargeIntegers(body),
         status: response.status,
       };
     } catch {

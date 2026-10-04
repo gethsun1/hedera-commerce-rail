@@ -163,6 +163,8 @@ The Hardhat unit tests exercise escrow lifecycle semantics using token doubles a
 
 Credentials are local-only and loaded from ignored environment files or a secure runtime secret source. The `.env.example` contains placeholders only. No private key is committed. The starter's configuration and test defaults will be reviewed and hardened in the Hedera connection/security milestones before real Testnet usage. Milestone 1 performs no signing or network transactions.
 
+See [Security and production notes](security.md) for the current wallet trust boundary, secret handling requirements, network safeguards, and accepted residual risks.
+
 ## Extensibility and scope
 
 Future payment APIs should keep policy evaluation separate from transaction execution so an optional AgentPay module can apply limits and recipient/asset allowlists without changing escrow invariants. AgentPay, backend services, persistent storage, production operations, and public deployment are explicitly out of scope for Milestone 1.
